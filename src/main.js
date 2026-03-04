@@ -6,8 +6,7 @@ import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
 
 Vue.use(ElementUI)
-// 注册全局提示组件
-Vue.prototype.$message = Message
+Vue.prototype.$message = ElementUI.Message
 
 new Vue({
   router,
