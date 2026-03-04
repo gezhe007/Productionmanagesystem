@@ -1,0 +1,2496 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1">
+    <title>补货&保质期管理（货架可添加批次）</title>
+    <style>
+        /* ========== 基础全局样式（重置+通用） ========== */
+        * {
+            box-sizing: border-box;
+            /* 统一盒模型，避免尺寸计算错误 */
+        }
+
+        body {
+            font-family: Arial;
+            padding: 10px;
+            margin: 0;
+            font-size: 16px;
+            /* 基准字体 */
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* 页面切换基础样式 */
+        .page {
+            display: none;
+            padding: 10px;
+        }
+
+        .active {
+            display: block;
+        }
+
+        /* 通用文本/状态色样式 */
+        .red {
+            color: #f44336;
+            font-weight: bold;
+        }
+
+        .yellow {
+            color: #ff9800;
+            font-weight: bold;
+        }
+
+        .green {
+            color: #4caf50;
+            font-weight: bold;
+        }
+
+        /* 必填项星号 */
+        .required::after {
+            content: '*';
+            color: #f44336;
+            margin-left: 2px;
+        }
+
+        /* ========== 通用表单组件（按钮+输入框+选择器） ========== */
+        button,
+        input,
+        select {
+            box-sizing: border-box;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        /* 按钮基础样式（统一合并） */
+        button {
+            padding: 8px 16px;
+            margin: 5px;
+            border-radius: 6px;
+            border: none;
+            background: #007aff;
+            color: white;
+            cursor: pointer;
+            transition: background 0.2s;
+            min-height: 44px;
+            /* 移动端友好点击高度 */
+        }
+
+        button:hover {
+            background: #0066cc;
+        }
+
+        /* 按钮变体样式（按功能分类） */
+        button.danger {
+            background: #ff4444;
+        }
+
+        button.danger:hover {
+            background: #cc0000;
+        }
+
+        button.success {
+            background: #4CAF50;
+        }
+
+        button.success:hover {
+            background: #388e3c;
+        }
+
+        button.warning {
+            background: #ff9800;
+        }
+
+        button.warning:hover {
+            background: #f57c00;
+        }
+
+        button.secondary {
+            background: #999;
+        }
+
+        button.secondary:hover {
+            background: #777;
+        }
+
+        /* 输入框/选择器基础样式 */
+        input,
+        select {
+            padding: 8px;
+            margin: 3px 0;
+            border: 1px solid #ddd;
+        }
+
+        input[type="number"] {
+            width: 80px;
+        }
+
+        input[type="date"] {
+            width: 150px;
+        }
+
+        select {
+            width: 200px;
+        }
+
+        /* ========== 通用布局组件（标题+行+筛选+提示） ========== */
+        h3 {
+            color: #333;
+            padding-bottom: 8px;
+            position: relative;
+            /* 新增：为返回按钮预留空间 */
+            padding-right: 120px;
+            /* 调整下划线为伪元素实现，避免遮挡按钮 */
+            margin-bottom: 10px;
+        }
+
+        /* 新增：用伪元素创建分隔线，确保在按钮下方 */
+        h3::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            height: 1px;
+            background-color: #eee;
+            /* 分隔线层级低于按钮 */
+            z-index: 1;
+        }
+
+        .filter-group {
+            margin: 10px 0;
+        }
+
+        .form-row {
+            margin: 10px 0;
+        }
+
+        /* 提示类组件（警告/待办/阈值设置） */
+        .warn {
+            background: #fff5e0;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            border-left: 4px solid #ff9800;
+        }
+
+        .todo {
+            background: #e6f7ff;
+            padding: 8px;
+            margin: 4px 0;
+            border-radius: 4px;
+            border-left: 3px solid #007aff;
+        }
+
+        .threshold-setting {
+            background: #f0f8ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border: 1px solid #cce5ff;
+        }
+
+        /* 库存预览样式 */
+        .stock-preview {
+            color: #007aff;
+            font-size: 13px;
+            margin-top: 4px;
+        }
+
+        /* ========== 业务模块样式（货架/仓库/批次） ========== */
+        /* 通用卡片容器 */
+        .item {
+            margin: 10px 0;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: #fff;
+        }
+
+        /* 货架相关样式 */
+        .shelf-goods {
+            margin-top: 6px;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .shelf-top-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .shelf-actions {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 5px;
+        }
+
+        .shelf-action-btn {
+            padding: 4px 8px;
+            font-size: 12px;
+            margin: 0;
+        }
+
+        /* 仓库/批次相关样式 */
+        .batch {
+            margin-left: 15px;
+            font-size: 14px;
+            color: #555;
+            padding: 8px 0;
+        }
+
+        .warehouse-module {
+            margin: 15px 0;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+
+        .module-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 10px 0;
+            color: #007aff;
+        }
+
+        .product-batch-item {
+            margin: 10px 0;
+            padding: 15px;
+            border: 1px solid #e8e8e8;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+
+        .product-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed #ddd;
+        }
+
+        .batch-management {
+            margin-top: 10px;
+        }
+
+        .batch-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px;
+            margin: 5px 0;
+            background: #fff;
+            border-radius: 4px;
+            border-left: 3px solid #007aff;
+        }
+
+        /* 功能按钮区 */
+        .function-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 8px;
+        }
+
+        /* ========== 弹窗/浮层组件 ========== */
+        /* 返回按钮（通用） */
+        .back-btn {
+            position: absolute;
+            top: 0;
+            right: 0;
+            padding: 2px 6px;
+            font-size: 14px;
+            /* 新增：提升按钮层级，确保在分隔线上方 */
+            z-index: 10;
+            /* 可选：添加背景色，增强视觉效果 */
+            background-color: #007aff;
+        }
+
+        /* 模态弹窗基础样式 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .modal-title {
+            margin-top: 0;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .modal-footer {
+            margin-top: 20px;
+            text-align: right;
+        }
+
+        /* 新手引导弹窗 */
+        .guide-tip {
+            background: #e6f7ff;
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            border-left: 4px solid #007aff;
+            font-size: 14px;
+        }
+
+        .guide-tip strong {
+            color: #007aff;
+        }
+
+        .guide-tip ul {
+            margin: 5px 0;
+            padding-left: 20px;
+        }
+
+        .close-guide {
+            float: right;
+            cursor: pointer;
+            color: #999;
+            font-size: 16px;
+        }
+
+        .close-guide:hover {
+            color: #f44336;
+        }
+
+        /* 自定义提示弹窗 */
+        .custom-alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 6px;
+            z-index: 9999;
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            opacity: 1;
+            transition: opacity 0.3s ease;
+            max-width: 300px;
+        }
+
+        .alert-success {
+            background: #4CAF50;
+        }
+
+        .alert-error {
+            background: #f44336;
+        }
+
+        /* 商品搜索框组件 */
+        .product-search-container {
+            position: relative;
+            width: 200px;
+            display: inline-block;
+        }
+
+        .product-search-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .search-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            max-height: 200px;
+            overflow-y: auto;
+            background: white;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+            z-index: 100;
+            display: none;
+        }
+
+        .search-suggestion-item {
+            padding: 8px;
+            cursor: pointer;
+        }
+
+        .search-suggestion-item:hover {
+            background: #f5f5f5;
+        }
+
+        .search-suggestion-item.highlight {
+            background: #e6f7ff;
+            color: #007aff;
+        }
+
+        /* ========== 动画效果 ========== */
+        .loading {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #fff;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 8px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ========== 移动端适配（768px以下） ========== */
+        @media (max-width: 768px) {
+
+            /* 基础字体适配 */
+            body {
+                font-size: 14px;
+            }
+
+            .batch,
+            .shelf-goods {
+                font-size: 0.875rem;
+            }
+
+            /* 布局容器适配 - 优化flex布局，保留桌面端逻辑但适配移动端 */
+            .shelf-top-actions {
+                display: flex;
+                flex-direction: row;
+                /* 改回行布局，避免按钮垂直排列 */
+                flex-wrap: wrap;
+                /* 超出换行 */
+                gap: 8px;
+                margin-bottom: 15px;
+                width: 100%;
+            }
+
+            .function-buttons {
+                display: flex;
+                flex-direction: row;
+                /* 改回行布局 */
+                flex-wrap: wrap;
+                /* 超出换行 */
+                gap: 8px;
+                width: 100%;
+            }
+
+            /* 按钮适配 - 差异化设置，不再强制100%宽度 */
+            /* 1. 功能按钮区的按钮：适度宽度，不是100% */
+            .function-buttons button {
+                width: calc(50% - 4px);
+                /* 一行2个按钮，减去gap的一半 */
+                margin: 0 !important;
+                padding: 8px 12px !important;
+                /* 缩小padding，按钮更紧凑 */
+                font-size: 14px !important;
+            }
+
+            /* 2. 货架顶部操作按钮：适度宽度 */
+            .shelf-top-actions button {
+                width: auto;
+                /* 自适应内容宽度 */
+                min-width: 120px;
+                /* 保底宽度，避免太窄 */
+                margin: 0 !important;
+                padding: 8px 16px !important;
+                flex-shrink: 0;
+                /* 防止被挤压 */
+            }
+
+            /* 3. 货架操作小按钮：保持紧凑 */
+            .shelf-action-btn {
+                width: auto;
+                margin: 0 !important;
+                padding: 4px 8px !important;
+                font-size: 12px !important;
+                min-width: 60px;
+            }
+
+            /* 4. 通用按钮：默认自适应宽度，不强制100% */
+            button {
+                width: auto;
+                margin: 4px !important;
+                padding: 8px 12px !important;
+                min-height: 40px;
+                /* 降低最小高度，按钮更小巧 */
+            }
+
+            /* 5. 补货确认按钮：独占一行（特殊按钮） */
+            #confirm-btn {
+                width: 100%;
+                padding: 10px 0 !important;
+                margin: 10px 0 !important;
+            }
+
+            /* 返回按钮适配 */
+            .back-btn {
+                top: -5px;
+                padding: 4px 8px !important;
+                font-size: 12px !important;
+                z-index: 99;
+                /* 保持高层级 */
+                width: auto !important;
+                min-width: 80px;
+            }
+
+            h3 .back-btn+.back-btn {
+                right: 80px;
+                z-index: 10;
+                /* 第二个返回按钮也提升层级 */
+            }
+
+            /* 表单/输入框适配 */
+            input,
+            select {
+                width: 100% !important;
+                min-height: 40px;
+            }
+
+            .form-row {
+                display: flex;
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            /* 弹窗适配 */
+            .modal {
+                width: 95%;
+                max-width: none;
+                padding: 15px;
+            }
+
+            .modal-footer {
+                display: flex;
+                justify-content: flex-end;
+                gap: 8px;
+            }
+
+            /* 弹窗按钮：自适应宽度 */
+            .modal-footer button {
+                width: auto;
+                min-width: 80px;
+                padding: 6px 12px !important;
+            }
+
+            /* 业务模块布局适配 */
+            .shelf-actions {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 5px;
+                width: 100%;
+            }
+
+            .product-info,
+            .batch-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .batch-item {
+                gap: 8px;
+            }
+
+            .product-name-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 8px;
+                width: 100%;
+            }
+
+            .product-add-batch-btn {
+                padding: 4px 8px !important;
+                font-size: 12px !important;
+                flex-shrink: 0;
+                width: auto !important;
+            }
+
+            /* 滚动适配 */
+            #shelf-management-list {
+                max-height: calc(100vh - 200px);
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .batch {
+                overflow-x: auto;
+            }
+
+            /* 商品搜索容器适配 */
+            .product-search-container {
+                width: 100% !important;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- 首页：只展示保质期警告 -->
+        <div id="page-home" class="page active">
+            <h3>库存保质期状态总览</h3>
+            <!-- 新手引导 -->
+            <div class="guide-tip" id="home-guide">
+                <span class="close-guide" onclick="this.parentElement.style.display='none'">×</span>
+                <strong>📌 新手引导：</strong>
+                <ul>
+                    <li>首页展示所有临期/过期商品预警，点击颜色标签可快速识别状态</li>
+                    <li>「货架管理」：管理货架及货架上的商品/生产日期，清点使用</li>
+                    <li>「仓库管理」：管理商品信息、保质期设置</li>
+                    <li>「分类管理」：管理商品分类信息</li>
+                </ul>
+            </div>
+            <div class="function-buttons">
+                <button class="success" onclick="PageManager.go('page-shelf-management')">货架管理</button>
+                <button class="warning" onclick="PageManager.go('page-warehouse-management')">仓库管理</button>
+                <button class="secondary" onclick="PageManager.go('page-category-management')">分类管理</button>
+            </div>
+            <!-- 临期阈值设置 -->
+            <div class="threshold-setting">
+                <h4>临期提醒天数设置</h4>
+                <div class="form-row">
+                    <span class="required">临期提醒天数</span>：
+                    <input type="number" id="expire-warning-threshold" min="1" max="30" value="3">
+                    <button class="success" onclick="HomePage.saveThreshold()">保存设置</button>
+                    <span id="threshold-message" style="color: #4CAF50; margin-left: 10px;"></span>
+                </div>
+                <p style="margin: 5px 0; font-size: 14px; color: #666;">
+                    设置后，剩余保质期小于等于该天数的商品会被标记为临期/即将过期
+                </p>
+            </div>
+            <div id="warn-area"></div>
+        </div>
+
+        <!-- 货架管理页面 -->
+        <div id="page-shelf-management" class="page">
+            <h3>货架管理
+                <button class="back-btn" onclick="PageManager.go('page-home')">返回首页</button>
+            </h3>
+            <!-- 新手引导 -->
+            <div class="guide-tip" id="shelf-guide">
+                <span class="close-guide" onclick="this.parentElement.style.display='none'">×</span>
+                <strong>📌 新手引导：</strong>
+                <ul>
+                    <li>货架管理页面负责清点货架上的货物数量以及生产日期，清点完毕后使用补货按钮快捷补货</li>
+                    <li>工作流：货架->数量、生产批次清点->补货</li>
+                </ul>
+            </div>
+            <!-- 修改：添加顶部操作栏，将新增货架和补货按钮放在一行，补货按钮右顶 -->
+            <div class="shelf-top-actions">
+                <button class="success" onclick="ModalManager.openAddShelfModal()">新增货架</button>
+                <button class="warning" onclick="PageManager.go('page-replenish')">补货</button>
+            </div>
+            <div id="shelf-management-list"></div>
+        </div>
+
+        <!-- 仓库管理页面 -->
+        <div id="page-warehouse-management" class="page">
+            <h3>仓库管理
+                <button class="back-btn" onclick="PageManager.go('page-home')">返回首页</button>
+            </h3>
+            <!-- 合并后的商品批次管理模块 -->
+            <div class="warehouse-module">
+                <div class="filter-group">
+                    筛选分类：<select id="filter-cat-product-batch"
+                        onchange="WarehouseManagementPage.renderProductBatchList()"></select>
+                    <button class="success" onclick="ProductPage.openAddModal()">添加新商品</button>
+                </div>
+                <div id="product-batch-list"></div>
+            </div>
+        </div>
+
+        <!-- 补货管理页面（改为补货页面） -->
+        <div id="page-replenish" class="page">
+            <h3>补货
+                <button class="back-btn" onclick="PageManager.go('page-shelf-management')">返回货架管理</button>
+                <button class="back-btn" style="right: 120px;" onclick="PageManager.go('page-home')">返回首页</button>
+            </h3>
+            <!-- 新手引导 -->
+            <div class="guide-tip" id="replenish-guide">
+                <span class="close-guide" onclick="this.parentElement.style.display='none'">×</span>
+                <strong>📌 补货操作引导：</strong>
+                <ul>
+                    <li>原有批次：为已上架的批次增加数量</li>
+                    <li>添加新批次：手动输入生产日期和数量</li>
+                    <li>确认补货：将所有待补货批次上架到对应货架</li>
+                </ul>
+            </div>
+            <div class="filter-group">
+                筛选分类：<select id="filter-cat-total" onchange="ReplenishPage.renderTotal()"></select>
+            </div>
+            <div id="total-content"></div>
+            <button class="danger" onclick="ReplenishPage.confirm()" id="confirm-btn">确认全部补货上货架</button>
+        </div>
+        <!-- 分类管理页面 -->
+        <div id="page-category-management" class="page">
+            <h3>分类管理
+                <button class="back-btn" onclick="PageManager.go('page-home')">返回首页</button>
+            </h3>
+            <div class="function-buttons">
+                <button class="success" onclick="ModalManager.openAddCategoryModal()">新增分类</button>
+            </div>
+            <div id="category-list"></div>
+        </div>
+
+        <!-- 新增分类弹窗 -->
+        <div class="modal-overlay" id="add-category-modal">
+            <div class="modal">
+                <h4 class="modal-title">新增分类</h4>
+                <div class="form-row">
+                    <span class="required">分类名称</span>：<input type="text" id="new-category-name" placeholder="如：日用品、零食"
+                        required>
+                </div>
+                <div class="modal-footer">
+                    <button class="secondary" onclick="ModalManager.hideModal('add-category-modal')">取消</button>
+                    <button class="success" onclick="ModalManager.saveNewCategory()">保存</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 修改分类弹窗 -->
+        <div class="modal-overlay" id="edit-category-modal">
+            <div class="modal">
+                <h4 class="modal-title">修改分类</h4>
+                <input type="hidden" id="edit-category-index">
+                <div class="form-row">
+                    <span class="required">新分类名称</span>：<input type="text" id="edit-category-name"
+                        placeholder="如：日用品、零食" required>
+                </div>
+                <div class="modal-footer">
+                    <button class="secondary" onclick="ModalManager.hideModal('edit-category-modal')">取消</button>
+                    <button class="success" onclick="ModalManager.saveEditCategory()">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增货架弹窗 -->
+    <div class="modal-overlay" id="add-shelf-modal">
+        <div class="modal">
+            <h4 class="modal-title">新增货架</h4>
+            <div class="form-row">
+                <span class="required">货架名称</span>：<input type="text" id="new-shelf-name" placeholder="请输入货架名称"
+                    required>
+            </div>
+            <div class="modal-footer">
+                <button class="secondary" onclick="ModalManager.hideModal('add-shelf-modal')">取消</button>
+                <button class="success" onclick="ModalManager.saveNewShelf()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 修改货架名称弹窗 -->
+    <div class="modal-overlay" id="edit-shelf-modal">
+        <div class="modal">
+            <h4 class="modal-title">修改货架名称</h4>
+            <input type="hidden" id="edit-shelf-index">
+            <div class="form-row">
+                <span class="required">新名称</span>：<input type="text" id="edit-shelf-name" placeholder="请输入新的货架名称"
+                    required>
+            </div>
+            <div class="modal-footer">
+                <button class="secondary" onclick="ModalManager.hideModal('edit-shelf-modal')">取消</button>
+                <button class="success" onclick="ModalManager.saveEditShelf()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加批次弹窗（货架用） -->
+    <div class="modal-overlay" id="add-batch-modal">
+        <div class="modal">
+            <h4 class="modal-title">添加商品批次</h4>
+            <input type="hidden" id="batch-modal-shelf">
+            <input type="hidden" id="batch-modal-product-id">
+            <div class="form-row">
+                商品名称：<span id="batch-modal-product-name"></span>
+            </div>
+            <div class="form-row">
+                <span class="required">生产日期</span>：<input type="date" id="batch-modal-produce-date" required>
+            </div>
+            <div class="form-row">
+                <span class="required">数量</span>：<input type="number" id="batch-modal-qty" min="1" value="1" required>
+            </div>
+            <div class="modal-footer">
+                <button class="secondary" onclick="ModalManager.hideModal('add-batch-modal')">取消</button>
+                <button class="success" onclick="ModalManager.saveAddBatch()">保存批次</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 修改货架商品满仓数弹窗 -->
+    <div class="modal-overlay" id="edit-shelf-product-max-modal">
+        <div class="modal">
+            <h4 class="modal-title">修改此货架该商品最大容量</h4>
+            <input type="hidden" id="edit-max-shelf">
+            <input type="hidden" id="edit-max-product-id">
+            <div class="form-row">
+                商品名称：<span id="edit-max-product-name"></span>
+            </div>
+            <div class="form-row">
+                <span class="required">此货架该商品最大容量</span>：<input type="number" id="edit-max-qty" min="1" required>
+            </div>
+            <div class="modal-footer">
+                <button class="secondary" onclick="ModalManager.hideModal('edit-shelf-product-max-modal')">取消</button>
+                <button class="success" onclick="ModalManager.saveEditShelfProductMax()">保存</button>
+            </div>
+        </div>
+    </div>
+    <!-- 管理货架商品弹窗 -->
+    <div class="modal-overlay" id="manage-shelf-product-modal">
+        <div class="modal" style="max-width: 800px;">
+            <h4 class="modal-title" id="manage-shelf-title">货架商品管理</h4>
+            <input type="hidden" id="manage-current-shelf">
+            <div class="form-row">
+                <span class="required">选择要添加的商品</span>：
+                <!-- 替换下拉框为搜索框 -->
+                <div class="product-search-container" id="manage-product-search-container">
+                    <input type="text" id="manage-product-search" class="product-search-input" placeholder="输入商品名搜索..."
+                        autocomplete="off">
+                    <div class="search-suggestions" id="manage-product-suggestions"></div>
+                </div>
+                <span class="required">此货架该商品最大容量</span>：
+                <input type="number" id="manage-shelf-product-max-qty" min="1" placeholder="请输入"
+                    style="width: 100px; margin-left: 10px;">
+                <button class="success" onclick="ShelfDetailModal.addProduct()">添加到货架</button>
+                <!-- 隐藏的商品ID存储 -->
+                <input type="hidden" id="selected-product-id">
+            </div>
+            <div id="manage-shelf-products-list"></div>
+            <div class="modal-footer">
+                <button class="secondary" onclick="ModalManager.hideModal('manage-shelf-product-modal')">关闭</button>
+            </div>
+        </div>
+    </div>
+    <!-- 修改商品弹窗 -->
+    <div class="modal-overlay" id="edit-product-modal">
+        <div class="modal">
+            <h4 class="modal-title">修改商品</h4>
+            <input type="hidden" id="modal-edit-index">
+            <div class="form-row"><span class="required">商品名</span>：<input id="modal-edit-name" required></div>
+            <div class="form-row"><span class="required">分类</span>：
+                <select id="modal-edit-category" required>
+                    <option value="">请选择分类</option>
+                </select>
+                <button class="secondary" style="margin-left: 10px;"
+                    onclick="ModalManager.hideModal('edit-product-modal');PageManager.go('page-category-management')">管理分类</button>
+            </div>
+            <div class="form-row">
+                <span class="required">标准保质期</span>：
+                <input id="modal-edit-period" type="number" min="1" required style="width:60px">
+                <select id="modal-edit-unit" required>
+                    <option value="day">天</option>
+                    <option value="month">月</option>
+                    <option value="year">年</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button class="secondary" onclick="ModalManager.hideModal('edit-product-modal')">取消</button>
+                <button class="success" onclick="ProductPage.saveModalEdit()">保存修改</button>
+            </div>
+        </div>
+    </div>
+    <!-- 添加商品弹窗 -->
+    <div class="modal-overlay" id="add-product-modal">
+        <div class="modal">
+            <h4 class="modal-title">添加新商品</h4>
+            <div class="form-row"><span class="required">商品名</span>：<input id="modal-add-name" required></div>
+            <div class="form-row"><span class="required">分类</span>：
+                <select id="modal-add-category" required>
+                    <option value="">请选择分类</option>
+                    <!-- 由JS动态渲染选项 -->
+                </select>
+            </div>
+            <div class="form-row">
+                <span class="required">标准保质期</span>：
+                <input id="modal-add-period" type="number" placeholder="数字" min="1" required style="width:60px">
+                <select id="modal-add-unit" required>
+                    <option value="day">天</option>
+                    <option value="month">月</option>
+                    <option value="year">年</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button class="secondary" onclick="ModalManager.hideModal('add-product-modal')">取消</button>
+                <button class="success" onclick="ProductPage.saveModalAdd()">保存商品</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== 核心常量定义 ==========
+        const STORAGE_KEYS = {
+            PRODUCTS: 'products',
+            SHELF_PRODUCTS: 'shelfProducts', // 新增max字段存储货架商品满仓数
+            SHELF_BATCHES: 'shelfBatches',
+            SHELVES: 'shelves',
+            EXPIRE_THRESHOLD: 'expireWarningThreshold',
+            CATEGORIES: 'categories' // 新增分类存储KEY
+        };
+
+        // ========== 工具函数模块（精简版） ==========
+        const Utils = {
+            // 获取批次状态
+            getBatchStatus(expireDateStr) {
+                const now = new Date();
+                const expireDate = new Date(expireDateStr);
+
+                // 处理无效日期
+                if (isNaN(expireDate.getTime())) {
+                    return { text: '日期无效', cls: 'red', days: -999 };
+                }
+
+                const leftDays = Math.ceil((expireDate - now) / 86400000);
+                const threshold = appState.expireThreshold;
+
+                if (leftDays <= 0) return { text: `已过期(${Math.abs(leftDays)}天)`, cls: 'red', days: leftDays };
+                if (leftDays <= threshold) return { text: `即将过期(剩${leftDays}天)`, cls: 'yellow', days: leftDays };
+                return { text: `正常(剩${leftDays}天)`, cls: 'green', days: leftDays };
+            },
+
+            // 验证表单输入（优化：实时标红错误输入框）
+            validateForm(fields) {
+                // 重置所有输入框样式
+                document.querySelectorAll('input, select').forEach(el => {
+                    el.style.border = '';
+                });
+
+                for (const [key, value] of Object.entries(fields)) {
+                    if (!value || (typeof value === 'number' && value <= 0)) {
+                        // 查找对应的输入框并标红
+                        let inputEl = null;
+                        // 按name/ID匹配输入框
+                        if (key.includes('商品名')) inputEl = document.getElementById('add-name') || document.getElementById('edit-name');
+                        else if (key.includes('分类')) inputEl = document.getElementById('add-category') || document.getElementById('edit-category');
+                        else if (key.includes('保质期')) inputEl = document.getElementById('add-period') || document.getElementById('edit-period');
+                        else if (key.includes('货架名称')) inputEl = document.getElementById('new-shelf-name') || document.getElementById('edit-shelf-name');
+                        else if (key.includes('仓库批次')) inputEl = document.getElementById('batch-modal-warehouse-batch');
+                        else if (key.includes('批次数量')) inputEl = document.getElementById('batch-modal-qty');
+                        else if (key.includes('生产日期')) inputEl = document.getElementById('warehouse-batch-date');
+                        else if (key.includes('此货架该商品最大容量')) inputEl = document.getElementById('shelf-product-max-qty') || document.getElementById('edit-max-qty');
+                        else if (key.includes('新名称')) inputEl = document.getElementById('edit-shelf-name');
+
+                        if (inputEl) inputEl.style.border = '1px solid #f44336';
+
+                        // 自定义错误提示
+                        showCustomAlert(`请正确填写：${key}`, 'error');
+                        return false;
+                    }
+                }
+                return true;
+            },
+
+            // 生成唯一ID
+            generateId(prefix = 'id') {
+                return `${prefix}_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+            },
+
+            // 计算补货数量 - 修改为从货架商品关联表获取满仓数
+            calculateReplenishQty(shelf, productId) {
+                const batches = appState.shelfBatches.filter(b =>
+                    b.shelf === shelf && b.productId === productId
+                );
+                const currentQty = batches.reduce((sum, b) => sum + b.qty, 0);
+                // 从货架商品关联表获取该商品在对应货架的满仓数
+                const shelfProduct = appState.shelfProducts.find(sp =>
+                    sp.shelf === shelf && sp.productId === productId
+                );
+                const maxQty = shelfProduct ? shelfProduct.max : 0;
+                return Math.max(0, maxQty - currentQty);
+            },
+
+            // 获取货架上的商品列表
+            getProductsInShelf(shelf) {
+                const shelfProductList = appState.shelfProducts.filter(sp => sp.shelf === shelf);
+                // 关联商品信息和货架满仓数
+                return shelfProductList.map(sp => {
+                    const product = appState.products.find(p => p.id === sp.productId);
+                    return {
+                        ...product,
+                        shelfMax: sp.max // 货架满仓数
+                    };
+                }).filter(p => p); // 过滤掉不存在的商品
+            },
+
+            // 获取货架商品的满仓数
+            getShelfProductMax(shelf, productId) {
+                const shelfProduct = appState.shelfProducts.find(sp =>
+                    sp.shelf === shelf && sp.productId === productId
+                );
+                return shelfProduct ? shelfProduct.max : 0;
+            },
+
+            // 计算补货后库存
+            calculateAfterReplenishQty(shelf, productId, addQty) {
+                const batches = appState.shelfBatches.filter(b =>
+                    b.shelf === shelf && b.productId === productId
+                );
+                const currentQty = batches.reduce((sum, b) => sum + b.qty, 0);
+                return currentQty + Number(addQty || 0);
+            }
+        };
+
+        // ========== 自定义提示弹窗函数 ==========
+        function showCustomAlert(message, type = 'success') {
+            // 移除已存在的提示
+            const existingAlerts = document.querySelectorAll('.custom-alert');
+            existingAlerts.forEach(alert => alert.remove());
+
+            const alertEl = document.createElement('div');
+            alertEl.className = `custom-alert alert-${type}`;
+            alertEl.textContent = message;
+            document.body.appendChild(alertEl);
+
+            // 3秒后自动关闭
+            setTimeout(() => {
+                alertEl.style.opacity = '0';
+                setTimeout(() => alertEl.remove(), 300);
+            }, 3000);
+        }
+
+        // ========== 数据管理模块（精简版） ==========
+        const DataManager = {
+            get(key) {
+                try {
+                    const data = localStorage.getItem(key);
+                    return data ? JSON.parse(data) : [];
+                } catch (e) {
+                    console.error('读取数据失败:', e);
+                    showCustomAlert('读取数据失败，请检查本地存储', 'error');
+                    return [];
+                }
+            },
+
+            set(key, data) {
+                try {
+                    localStorage.setItem(key, JSON.stringify(data));
+                    return true;
+                } catch (e) {
+                    console.error('保存数据失败:', e);
+                    showCustomAlert('数据保存失败，请检查本地存储是否可用', 'error');
+                    return false;
+                }
+            },
+
+            getExpireThreshold() {
+                try {
+                    const threshold = localStorage.getItem(STORAGE_KEYS.EXPIRE_THRESHOLD);
+                    return threshold ? parseInt(threshold) : 3;
+                } catch (e) {
+                    return 3;
+                }
+            },
+
+            setExpireThreshold(value) {
+                try {
+                    localStorage.setItem(STORAGE_KEYS.EXPIRE_THRESHOLD, value);
+                    return true;
+                } catch (e) {
+                    console.error('保存阈值失败:', e);
+                    showCustomAlert('保存临期提醒天数失败', 'error');
+                    return false;
+                }
+            },
+
+            init() {
+                // 初始化商品数据（添加ID）
+                let products = this.get(STORAGE_KEYS.PRODUCTS);
+                if (products.length > 0 && !products[0].id) {
+                    products = products.map((p, i) => ({
+                        ...p,
+                        id: `prod_${Date.now()}_${i}`
+                    }));
+                    this.set(STORAGE_KEYS.PRODUCTS, products);
+                }
+
+                // 初始化货架商品关联数据（添加max字段）
+                let shelfProducts = this.get(STORAGE_KEYS.SHELF_PRODUCTS);
+                if (shelfProducts.length > 0 && !shelfProducts[0].max) {
+                    // 兼容旧数据，默认满仓数为10
+                    shelfProducts = shelfProducts.map(sp => ({
+                        ...sp,
+                        max: 10
+                    }));
+                    this.set(STORAGE_KEYS.SHELF_PRODUCTS, shelfProducts);
+                }
+
+                // 初始化默认数据
+                !localStorage.getItem(STORAGE_KEYS.SHELF_PRODUCTS) && this.set(STORAGE_KEYS.SHELF_PRODUCTS, []);
+                !localStorage.getItem(STORAGE_KEYS.EXPIRE_THRESHOLD) && this.setExpireThreshold(3);
+
+                // 初始化货架
+                let shelves = this.get(STORAGE_KEYS.SHELVES);
+                if (shelves.length === 0) {
+                    shelves = ['货架1', '货架2', '货架3', '货架4', '货架5'];
+                    this.set(STORAGE_KEYS.SHELVES, shelves);
+                }
+                let categories = this.get(STORAGE_KEYS.CATEGORIES);
+                if (categories.length === 0) {
+                    categories = ['牛奶', '啤酒', '饮料', '矿泉水', '槟榔', '散装零食', '糖果', '饼干', '薯片', '玩具', '雪糕', '干果',
+                        '生活用品', '沐浴露', '洗衣液', '蚊香', '洗手液', '洗面奶', '洗发露', '牙刷', '牙膏', '毛巾', '纸巾', '卫生巾', '洗洁精',
+                        '洗衣粉', '辣条', '榨菜', '瓜子', '花生', '面包', '火腿肠', '泡面', '油', '盐', '罐头', '酱油', '蚝油', '一次性内裤', '充电器',
+                        '手套', '刷子', '筷子', '袜子', '剃须刀', '唇膏', '白酒', '红酒', '电池', '扑克牌']; // 默认分类
+                    this.set(STORAGE_KEYS.CATEGORIES, categories);
+                }
+
+                return {
+                    shelves,
+                    products,
+                    shelfProducts,
+                    shelfBatches: this.get(STORAGE_KEYS.SHELF_BATCHES),
+                    pendingNew: [],
+                    expireThreshold: this.getExpireThreshold(),
+                    categories // 新增分类数据
+                };
+            }
+        };
+
+        // ========== 页面管理模块（精简版） ==========
+        const PageManager = {
+            currentShelf: '',
+
+            go(id) {
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                const targetPage = document.getElementById(id);
+                targetPage.classList.add('active');
+
+                // 页面初始化逻辑
+                const initHandlers = {
+                    'page-home': () => HomePage.render(),
+                    'page-shelf-management': () => ShelfManagementPage.render(),
+                    'page-warehouse-management': () => WarehouseManagementPage.render(),
+                    'page-replenish': () => ReplenishPage.renderTotal(),
+                    'page-category-management': () => CategoryManagementPage.render() // 新增分类页面初始化
+                };
+
+                initHandlers[id]?.();
+            },
+
+            setCurrentShelf(shelf) {
+                this.currentShelf = shelf;
+                // 更新货架商品管理标题
+                document.getElementById('shelf-manage-title').innerHTML =
+                    `${shelf} - 商品管理
+                    <button class="back-btn" onclick="PageManager.go('page-shelf-management')">返回货架管理</button>
+                    <button class="back-btn" onclick="PageManager.go('page-home')">返回首页</button>`;
+            }
+        };
+
+        // ========== 首页模块（精简版） ==========
+        const HomePage = {
+            render() {
+                this.renderWarningArea();
+                appState.expireThreshold
+            },
+
+            renderWarningArea() {
+                let warnItems = [];
+
+                // 收集货架批次警告
+                appState.shelfBatches.forEach(batch => {
+                    const status = Utils.getBatchStatus(batch.expire);
+                    if (status.days <= appState.expireThreshold) {
+                        warnItems.push(`<div class="${status.cls}">${batch.shelf}→${batch.product}(${batch.batch} ${status.text})</div>`);
+                    }
+                });
+
+                const warnArea = document.getElementById('warn-area');
+                warnArea.innerHTML = warnItems.length
+                    ? `<div class="warn"><strong>⚠️ 保质期警告</strong><br>${warnItems.join('<br>')}</div>`
+                    : '<div class="warn" style="background: #e8f5e9; border-left-color: #4CAF50;">✅ 暂无临期或过期商品</div>';
+            },
+            saveThreshold() {
+                const thresholdInput = document.getElementById('expire-warning-threshold');
+                const messageEl = document.getElementById('threshold-message');
+                const threshold = parseInt(thresholdInput.value);
+
+                DataManager.setExpireThreshold(threshold);
+                appState.expireThreshold = threshold;
+
+                // 更新所有状态显示
+                HomePage.renderWarningArea();
+                // 修正：调用正确的方法名
+                WarehouseManagementPage.renderProductBatchList();
+
+                messageEl.textContent = '设置保存成功！';
+                showCustomAlert('临期提醒天数设置保存成功', 'success');
+                setTimeout(() => messageEl.textContent = '', 3000);
+                return true;
+            }
+        };
+
+        // ========== 货架管理页面（精简版） ==========
+        const ShelfManagementPage = {
+            render() {
+                let html = '';
+                appState.shelves.forEach((shelf, index) => {
+                    const shelfProductList = Utils.getProductsInShelf(shelf);
+                    const goodsNames = shelfProductList.map(p => p.name).join('、');
+
+                    html += `
+        <div class="item">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;border-bottom: 1px solid #ccc; padding-bottom: 4px;">
+                <strong>${shelf}</strong>
+                <div class="shelf-actions">
+                    <button class="success shelf-action-btn" onclick="ShelfManagementPage.addProductToShelf('${shelf}')">添加商品</button>
+                    <button class="warning shelf-action-btn" onclick="ModalManager.openEditShelfModal(${index}, '${shelf}')">修改货架名</button>
+                    <button class="danger shelf-action-btn" onclick="ModalManager.deleteShelf(${index}, '${shelf}')">删除货架</button>
+                </div>
+            </div>
+            <div class="shelf-goods">商品：${goodsNames || '无商品'}</div>
+    `;
+
+                    if (shelfProductList.length > 0) {
+                        shelfProductList.forEach(product => {
+                            const batches = appState.shelfBatches.filter(b =>
+                                b.shelf === shelf && b.productId === product.id
+                            ).sort((a, b) => new Date(a.expire) - new Date(b.expire));
+
+                            const totalQty = batches.reduce((sum, b) => sum + b.qty, 0);
+                            const needQty = Utils.calculateReplenishQty(shelf, product.id);
+
+                            // ========== 核心修改：商品名称行布局 ==========
+                            html += `
+                <div style="margin-top:12px; padding-top:8px; border-top:1px dashed #eee;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <strong>[${product.category}] ${product.name}</strong>
+                        <button class="warning shelf-action-btn" style="padding: 2px 6px; font-size: 12px;" 
+                                onclick="ModalManager.openAddBatchModal('${shelf}', '${product.id}', '${product.name}')">
+                            添加批次
+                        </button>
+                    </div>
+                    <div style="margin-top:6px;"><strong>现有批次</strong></div>
+            `;
+
+                            if (batches.length === 0) {
+                                html += '<div class="batch">暂无批次记录</div>';
+                            } else {
+                                batches.forEach(batch => {
+                                    const status = Utils.getBatchStatus(batch.expire);
+                                    html += `
+                                    <div class="batch">
+                                        ${batch.batch} <span class="${status.cls}">${status.text}</span>
+                                        数量：
+                                        <input type="number" value="${batch.qty}" min="0"
+                                            onchange="ShelfManagementPage.updateBatchQty('${shelf}','${product.id}','${batch.batch}',this.value)">
+                                        <button class="danger" onclick="ShelfManagementPage.deleteBatch('${shelf}','${product.id}','${batch.batch}')">删除</button>
+                                    </div>`;
+                                });
+                            }
+
+                            // 修改库存行，添加修改最大容量按钮和删除商品按钮在右下角
+                            html += `
+                                    <div style="margin-top:6px; font-size:13px; display: flex; justify-content: space-between; align-items: center;">
+                                        <span>库存：当前${totalQty}件 / 最大${product.shelfMax}件 / 需补货${needQty}件</span>
+                                        <div style="display: flex; gap: 5px;">
+                                            <button class="warning shelf-action-btn" style="padding: 2px 6px; font-size: 12px;" 
+                                                    onclick="ModalManager.openEditShelfProductMaxModal('${shelf}', '${product.id}', '${product.name}', ${product.shelfMax})">
+                                                修改最大容量
+                                            </button>
+                                            <button class="danger shelf-action-btn" style="padding: 2px 6px; font-size: 12px;" 
+                                                    onclick="ShelfManagementPage.deleteProductFromShelf('${shelf}', '${product.id}', '${product.name}')">
+                                                删除商品
+                                            </button>
+                                        </div>
+                                    </div>
+                                    `;
+                        });
+                    }
+
+                    html += `</div>`;
+                });
+
+                document.getElementById('shelf-management-list').innerHTML = html;
+            },
+
+            addProductToShelf(shelf) {
+                // 打开添加商品到货架的弹窗
+                document.getElementById('manage-current-shelf').value = shelf;
+                document.getElementById('manage-shelf-title').textContent = `${shelf} - 添加商品`;
+
+                // 初始化商品搜索框
+                ProductSearch.init('manage-product-search', 'manage-product-suggestions', 'selected-product-id');
+
+                // 清空最大容量输入框
+                document.getElementById('manage-shelf-product-max-qty').value = '';
+
+                // 只显示添加商品的部分，隐藏商品列表
+                document.getElementById('manage-shelf-products-list').innerHTML = '<div style="margin: 10px 0; color: #666;">请选择商品并设置最大容量后点击"添加到货架"按钮</div>';
+
+                // 显示弹窗
+                ModalManager.showModal('manage-shelf-product-modal');
+            },
+
+            // 更新批次数量
+            updateBatchQty(shelf, productId, batch, value) {
+                const qty = Number(value) || 0;
+                const item = appState.shelfBatches.find(b =>
+                    b.shelf === shelf && b.productId === productId && b.batch === batch
+                );
+                if (item) {
+                    item.qty = qty;
+                    DataManager.set(STORAGE_KEYS.SHELF_BATCHES, appState.shelfBatches);
+                    this.render();
+                    showCustomAlert('数量已更新', 'success');
+                }
+            },
+
+            // 删除批次
+            deleteBatch(shelf, productId, batch) {
+                if (!confirm('确定删除该批次？')) return;
+                appState.shelfBatches = appState.shelfBatches.filter(b =>
+                    !(b.shelf === shelf && b.productId === productId && b.batch === batch)
+                );
+                DataManager.set(STORAGE_KEYS.SHELF_BATCHES, appState.shelfBatches);
+                this.render();
+                showCustomAlert('批次已删除', 'success');
+            },
+            // 从货架删除商品
+            deleteProductFromShelf(shelf, productId, productName) {
+                // 统计该商品在货架上的批次数量
+                const batchCount = appState.shelfBatches.filter(b =>
+                    b.shelf === shelf && b.productId === productId
+                ).length;
+
+                const confirmText = `确定从【${shelf}】删除商品【${productName}】？
+                                    该操作将删除：
+                                    1. 该商品在货架的关联记录
+                                    2. ${batchCount}个商品批次记录
+                                    数据删除后无法恢复！`;
+
+                if (!confirm(confirmText)) return;
+
+                // 删除货架商品关联记录
+                appState.shelfProducts = appState.shelfProducts.filter(sp =>
+                    !(sp.shelf === shelf && sp.productId === productId)
+                );
+
+                // 删除该商品在该货架的所有批次
+                appState.shelfBatches = appState.shelfBatches.filter(b =>
+                    !(b.shelf === shelf && b.productId === productId)
+                );
+
+                // 删除待补货列表中的相关记录
+                appState.pendingNew = appState.pendingNew.filter(p =>
+                    !(p.shelf === shelf && p.productId === productId)
+                );
+
+                // 保存数据
+                DataManager.set(STORAGE_KEYS.SHELF_PRODUCTS, appState.shelfProducts);
+                DataManager.set(STORAGE_KEYS.SHELF_BATCHES, appState.shelfBatches);
+
+                // 重新渲染页面
+                this.render();
+                showCustomAlert(`商品【${productName}】已从货架【${shelf}】删除`, 'success');
+            },
+        };
+
+
+        // ========== 货架商品管理弹窗模块 ==========
+        const ShelfDetailModal = {
+            // 打开管理商品弹窗（现在主要用于添加商品）
+            open(shelf) {
+                document.getElementById('manage-current-shelf').value = shelf;
+                document.getElementById('manage-shelf-title').textContent = `${shelf} - 添加商品`;
+
+                // 初始化商品搜索框
+                ProductSearch.init('manage-product-search', 'manage-product-suggestions', 'selected-product-id');
+
+                // 清空商品列表，只显示添加提示
+                document.getElementById('manage-shelf-products-list').innerHTML = '<div style="margin: 10px 0; color: #666;">请选择商品并设置最大容量后点击"添加到货架"按钮</div>';
+
+                // 显示弹窗
+                ModalManager.showModal('manage-product-modal');
+            },
+
+            // 渲染商品选择器
+            renderProductSelector() {
+                const selector = document.getElementById('manage-product-selector');
+                selector.innerHTML = '<option value="">选择要添加的商品</option>';
+
+                // 显示所有仓库商品
+                appState.products.forEach(product => {
+                    selector.innerHTML += `<option value="${product.id}">${product.name} [${product.category}]</option>`;
+                });
+            },
+
+            // 渲染货架商品列表（移除删除按钮）
+            renderShelfProductsList() {
+                // 该方法现在基本不用，因为管理商品弹窗只用于添加商品
+                const shelf = document.getElementById('manage-current-shelf').value;
+                document.getElementById('manage-shelf-products-list').innerHTML = '<div style="margin: 10px 0; color: #666;">请选择商品并设置最大容量后点击"添加到货架"按钮</div>';
+            },
+
+            // 添加商品到货架
+            addProduct() {
+                const shelf = document.getElementById('manage-current-shelf').value;
+                // 从搜索框获取选中的商品ID
+                const productId = ProductSearch.getSelectedProductId('selected-product-id');
+                const maxQty = Number(document.getElementById('manage-shelf-product-max-qty').value);
+
+                if (!productId) {
+                    return showCustomAlert('请选择要添加的商品', 'error');
+                }
+
+                if (!Utils.validateForm({ '此货架该商品最大容量': maxQty })) {
+                    return;
+                }
+
+                const product = appState.products.find(p => p.id === productId);
+                if (!product) {
+                    return showCustomAlert('商品不存在', 'error');
+                }
+
+                // 检查是否已添加
+                const exists = appState.shelfProducts.some(sp =>
+                    sp.shelf === shelf && sp.productId === productId
+                );
+
+                if (exists) {
+                    return showCustomAlert('该商品已添加到货架', 'error');
+                }
+
+                // 添加到货架商品关联表
+                appState.shelfProducts.push({
+                    shelf,
+                    productId,
+                    max: maxQty
+                });
+
+                DataManager.set(STORAGE_KEYS.SHELF_PRODUCTS, appState.shelfProducts);
+
+                showCustomAlert('商品添加到货架成功', 'success');
+
+                // 清空搜索框和选中状态
+                document.getElementById('manage-product-search').value = '';
+                document.getElementById('selected-product-id').value = '';
+
+                // 清空最大容量输入框
+                document.getElementById('manage-shelf-product-max-qty').value = '';
+
+                // 同步更新货架管理页面
+                ShelfManagementPage.render();
+            },
+
+            // 修改最大容量（保留，供货架管理页面调用）
+            editMaxQty(shelf, productId, productName, currentMax) {
+                ModalManager.openEditShelfProductMaxModal(shelf, productId, productName, currentMax);
+            },
+
+            // 移除移除商品的方法（删除 removeProduct 函数）
+        };
+        const WarehouseManagementPage = {
+            render() {
+                document.getElementById('expire-warning-threshold').value = appState.expireThreshold;
+                // 先渲染筛选框，再渲染列表
+                ProductPage.renderCategoryFilter('filter-cat-product-batch');
+                this.renderProductBatchList();
+            },
+
+            renderProductBatchList() {
+                // 获取筛选条件（确保能正确获取选中值）
+                const filterCat = document.getElementById('filter-cat-product-batch').value;
+                const filteredProducts = filterCat
+                    ? appState.products.filter(p => p.category === filterCat)
+                    : appState.products;
+
+                let html = '';
+                if (filteredProducts.length === 0) {
+                    html = '<div class="item">暂无商品，请先添加商品</div>';
+                } else {
+                    filteredProducts.forEach((product, index) => {
+                        html += `
+                    <div class="product-batch-item">
+                        <div class="product-info">
+                            <div>
+                                <strong>[${product.category}] ${product.name}</strong>
+                                <div style="font-size: 14px; color: #666; margin-top: 4px;">
+                                    标准保质期：${product.period}${product.unit}
+                                </div>
+                            </div>
+                            <div>
+                                <button class="warning" onclick="ProductPage.openEditModal(${index})">修改商品</button>
+                                <button class="danger" onclick="ProductPage.delete(${index})">删除商品</button>
+                            </div>
+                        </div>
+                    </div>`;
+                    });
+                }
+
+                document.getElementById('product-batch-list').innerHTML = html;
+            }
+        };
+
+        // ========== 商品管理模块（精简版） ==========
+        const ProductPage = {
+            renderCategoryFilter(targetId) {
+                const categories = [...new Set(appState.products.map(p => p.category))];
+                const selector = document.getElementById(targetId);
+
+                selector.innerHTML = '<option value="">全部</option>';
+                categories.forEach(cat => {
+                    selector.innerHTML += `<option value="${cat}">${cat}</option>`;
+                });
+                selector.onchange = function () {
+                    // 根据不同的筛选框ID调用对应的渲染方法
+                    if (targetId === 'filter-cat-product-batch') {
+                        WarehouseManagementPage.renderProductBatchList();
+                    } else if (targetId === 'filter-cat-total') {
+                        ReplenishPage.renderTotal();
+                    }
+                };
+            },
+            renderCategorySelect(targetId, selectedValue = '') {
+                const select = document.getElementById(targetId);
+                select.innerHTML = '<option value="">请选择分类</option>';
+                appState.categories.forEach(cat => {
+                    const selected = cat === selectedValue ? 'selected' : '';
+                    select.innerHTML += `<option value="${cat}" ${selected}>${cat}</option>`;
+                });
+            },
+            // 打开添加商品弹窗（替换原openAddProductPage方法）
+            openAddModal() {
+                // 清空输入框
+                document.getElementById('modal-add-name').value = '';
+                document.getElementById('modal-add-period').value = '';
+
+                // 渲染分类下拉框
+                this.renderCategorySelect('modal-add-category');
+
+                // 显示弹窗
+                ModalManager.showModal('add-product-modal');
+            },
+
+            // 保存弹窗中的新增商品
+            saveModalAdd() {
+                // 获取表单数据
+                const name = document.getElementById('modal-add-name').value.trim();
+                const category = document.getElementById('modal-add-category').value.trim();
+                const period = Number(document.getElementById('modal-add-period').value);
+                const unit = document.getElementById('modal-add-unit').value;
+
+                if (!Utils.validateForm({
+                    '商品名': name, '分类': category,
+                    '保质期数值': period
+                })) return;
+
+                const newProduct = {
+                    id: Utils.generateId('prod'),
+                    name,
+                    category,
+                    period: period,  // 保存原始数字
+                    unit: unit       // 保存原始单位：day/month/year
+                };
+
+                // 保存商品
+                appState.products.push(newProduct);
+                DataManager.set(STORAGE_KEYS.PRODUCTS, appState.products);
+
+                showCustomAlert('商品添加成功', 'success');
+
+                // 关闭弹窗并刷新列表
+                ModalManager.hideModal('add-product-modal');
+                WarehouseManagementPage.renderProductBatchList();
+            },
+
+            // 替换原有的 edit 方法，新增 openEditModal 方法
+            openEditModal(index) {
+                const product = appState.products[index];
+                document.getElementById('modal-edit-index').value = index;
+                document.getElementById('modal-edit-name').value = product.name;
+                // 渲染分类下拉框
+                this.renderCategorySelect('modal-edit-category', product.category);
+                document.getElementById('modal-edit-period').value = product.period;
+                document.getElementById('modal-edit-unit').value = product.unit;
+                // 显示弹窗
+                ModalManager.showModal('edit-product-modal');
+            },
+            // 新增弹窗保存方法
+            saveModalEdit() {
+                const index = Number(document.getElementById('modal-edit-index').value);
+                const name = document.getElementById('modal-edit-name').value.trim();
+                const category = document.getElementById('modal-edit-category').value.trim();
+                const period = Number(document.getElementById('modal-edit-period').value);
+                const unit = document.getElementById('modal-edit-unit').value;
+
+                if (!Utils.validateForm({
+                    '商品名': name, '分类': category,
+                    '保质期数值': period
+                })) return;
+
+                // 获取修改前的商品信息
+                const oldProduct = appState.products[index];
+                const productId = oldProduct.id;
+
+                // 更新商品信息
+                appState.products[index] = {
+                    ...appState.products[index],
+                    name,
+                    category,
+                    period: period,
+                    unit: unit
+                };
+
+                // ========== 核心修改：同步更新货架上所有该商品批次的过期日期 ==========
+                // 遍历所有该商品的货架批次
+                appState.shelfBatches.forEach(batch => {
+                    if (batch.productId === productId && batch.batch) {
+                        // 重新计算过期日期
+                        const produceDate = batch.batch; // 批次号就是生产日期
+                        const produceDateObj = new Date(produceDate);
+                        const expireDateObj = new Date(produceDateObj);
+
+                        // 使用新的保质期重新计算
+                        if (unit === 'day') expireDateObj.setDate(produceDateObj.getDate() + period);
+                        else if (unit === 'month') expireDateObj.setMonth(produceDateObj.getMonth() + period);
+                        else if (unit === 'year') expireDateObj.setFullYear(produceDateObj.getFullYear() + period);
+
+                        // 更新过期日期
+                        batch.expire = expireDateObj.toISOString().split('T')[0];
+                        // 同步更新商品名称（如果有修改）
+                        batch.product = name;
+                    }
+                });
+
+                // ========== 同时更新待补货列表中的相关数据 ==========
+                appState.pendingNew.forEach(item => {
+                    if (item.productId === productId) {
+                        // 重新计算过期日期
+                        const produceDateObj = new Date(item.batch);
+                        const expireDateObj = new Date(produceDateObj);
+
+                        if (unit === 'day') expireDateObj.setDate(produceDateObj.getDate() + period);
+                        else if (unit === 'month') expireDateObj.setMonth(produceDateObj.getMonth() + period);
+                        else if (unit === 'year') expireDateObj.setFullYear(produceDateObj.getFullYear() + period);
+
+                        item.expire = expireDateObj.toISOString().split('T')[0];
+                        item.product = name;
+                    }
+                });
+
+                // 保存所有更新后的数据
+                DataManager.set(STORAGE_KEYS.PRODUCTS, appState.products);
+                DataManager.set(STORAGE_KEYS.SHELF_BATCHES, appState.shelfBatches);
+                DataManager.set(STORAGE_KEYS.SHELF_PRODUCTS, appState.shelfProducts); // 同步保存
+
+                showCustomAlert('商品修改成功，已同步更新所有货架批次的保质期信息', 'success');
+
+                // 关闭弹窗并刷新相关页面
+                ModalManager.hideModal('edit-product-modal');
+                WarehouseManagementPage.renderProductBatchList();
+                // 刷新首页的警告区域
+                HomePage.renderWarningArea();
+                // 如果当前有打开的货架管理页面，也刷新（可选）
+                if (document.getElementById('page-shelf-management').classList.contains('active')) {
+                    ShelfManagementPage.render();
+                }
+            },
+            delete(index) {
+                const product = appState.products[index];
+                const productId = product.id;
+
+                // 统计关联数据
+                const shelfProductCount = appState.shelfProducts.filter(sp => sp.productId === productId).length;
+                const shelfBatchCount = appState.shelfBatches.filter(b => b.productId === productId).length;
+
+                const confirmText = `确定删除该商品？
+该操作将删除：
+1. 该商品在${shelfProductCount}个货架的关联记录
+2. ${shelfBatchCount}个货架批次记录
+数据删除后无法恢复！`;
+
+                if (!confirm(confirmText)) return;
+
+                // 删除商品及关联数据
+                appState.products.splice(index, 1);
+                appState.shelfProducts = appState.shelfProducts.filter(sp => sp.productId !== productId);
+                appState.shelfBatches = appState.shelfBatches.filter(b => b.productId !== productId);
+
+                // 保存数据
+                DataManager.set(STORAGE_KEYS.PRODUCTS, appState.products);
+                DataManager.set(STORAGE_KEYS.SHELF_PRODUCTS, appState.shelfProducts);
+                DataManager.set(STORAGE_KEYS.SHELF_BATCHES, appState.shelfBatches);
+
+                WarehouseManagementPage.renderProductBatchList();
+                showCustomAlert('商品删除成功', 'success');
+            }
+        };
+
+        // ========== 补货汇总模块（精简版） ==========
+        const ReplenishPage = {
+            renderTotal() {
+                // 先渲染筛选框，确保事件绑定生效
+                ProductPage.renderCategoryFilter('filter-cat-total');
+
+                const filterCat = document.getElementById('filter-cat-total').value;
+                let html = '';
+
+                // 按货架处理
+                appState.shelves.forEach(shelf => {
+                    let productsInShelf = Utils.getProductsInShelf(shelf);
+                    if (filterCat) productsInShelf = productsInShelf.filter(p => p.category === filterCat);
+
+                    // 渲染每个商品的补货信息
+                    productsInShelf.forEach(product => {
+                        const batches = appState.shelfBatches.filter(b =>
+                            b.shelf === shelf && b.productId === product.id
+                        );
+                        const totalQty = batches.reduce((sum, b) => sum + b.qty, 0);
+                        const needQty = Utils.calculateReplenishQty(shelf, product.id);
+
+                        // 无需补货则跳过
+                        if (needQty <= 0) return;
+
+                        // 渲染商品补货信息
+                        html += this.renderProductReplenish(shelf, product, batches, needQty);
+                    });
+                });
+
+                document.getElementById('total-content').innerHTML = html || '<div>无需补货</div>';
+            },
+
+            renderProductReplenish(shelf, product, batches, needQty) {
+                let html = `<div class="item"><h4>[${product.category}] ${shelf}→${product.name}（需补 ${needQty} 件）</h4>`;
+
+                // 原有批次
+                html += `<div><strong>原有批次（补货数量填0则不补）</strong></div>`;
+                batches.forEach(batch => {
+                    const currentQty = batch.qty;
+                    html += `
+                        <div class="batch">
+                            ${batch.batch} (当前库存：${currentQty}件)
+                            补货数量：<input type="number" id="old-${product.id}-${batch.batch}" value="0" min="0"
+                                oninput="showReplenishPreview('${shelf}','${product.id}', '${batch.batch}', this.value)">
+                            <div class="stock-preview" id="replenish-preview-${shelf}-${product.id}-${batch.batch}">补货后库存：${currentQty}件</div>
+                        </div>`;
+                });
+
+                // 新批次
+                html += `
+                    <div><strong>添加新批次</strong></div>
+                    <div class="batch">
+                        选择生产日期：<input type="date" id="new-produce-date-${product.id}" required>
+                            <option value="">请选择生产日期</option>
+                        <br>
+                        补货数量：<input type="number" id="new-qty-${product.id}" value="${needQty}" min="0">
+                    <button onclick="ReplenishPage.addNewPending('${product.id}','${shelf}')">添加这批</button>
+                    </div>`;
+
+                // 待上新批次
+                const pendingItems = appState.pendingNew.filter(x =>
+                    x.productId === product.id && x.shelf === shelf
+                );
+
+                if (pendingItems.length > 0) {
+                    html += `<div class="batch"><strong>待上新批次：</strong></div>`;
+                    pendingItems.forEach((item, index) => {
+                        html += `<div class="todo">
+                            ${item.batch} → ${item.qty}件
+                            <button class="secondary" onclick="ReplenishPage.deletePending(${index})">删</button>
+                        </div>`;
+                    });
+                }
+
+                html += `</div>`;
+                return html;
+            },
+
+            addNewPending(productId, shelf) {
+                const product = appState.products.find(p => p.id === productId);
+                if (!product) return showCustomAlert('商品不存在', 'error');
+
+                // 读取手动输入的生产日期和数量，不再依赖仓库批次
+                const produceDate = document.getElementById(`new-produce-date-${productId}`).value;
+                const qty = Number(document.getElementById(`new-qty-${productId}`).value) || 0;
+
+                if (!produceDate || qty <= 0) {
+                    return showCustomAlert('请选择生产日期并填写有效补货数量', 'error');
+                }
+
+                // 计算过期日期（复用原有逻辑）
+                const produceDateObj = new Date(produceDate);
+                const expireDateObj = new Date(produceDateObj);
+                const period = product.period;
+                const unit = product.unit;
+                if (unit === 'day') expireDateObj.setDate(produceDateObj.getDate() + period);
+                else if (unit === 'month') expireDateObj.setMonth(produceDateObj.getMonth() + period);
+                else if (unit === 'year') expireDateObj.setFullYear(produceDateObj.getFullYear() + period);
+                const expireDateStr = expireDateObj.toISOString().split('T')[0];
+
+                // 检查商品是否在货架中
+                const isInShelf = appState.shelfProducts.some(sp =>
+                    sp.shelf === shelf && sp.productId === productId
+                );
+                if (!isInShelf) return showCustomAlert('该商品不在此货架，无法添加批次', 'error');
+
+                // 添加到待补货列表（不再关联仓库批次ID）
+                appState.pendingNew.push({
+                    productId,
+                    product: product.name,
+                    shelf,
+                    batch: produceDate, // 生产日期作为批次标识
+                    qty,
+                    expire: expireDateStr
+                });
+
+                this.renderTotal();
+                showCustomAlert('批次已添加到待补货列表', 'success');
+            },
+
+            deletePending(index) {
+                appState.pendingNew.splice(index, 1);
+                this.renderTotal();
+                showCustomAlert('待补货批次已删除', 'success');
+            },
+
+            confirm() {
+                const confirmBtn = document.getElementById('confirm-btn');
+                // 添加加载状态
+                confirmBtn.classList.add('loading');
+
+                if (appState.pendingNew.length === 0 && !this.hasOldBatchReplenish()) {
+                    confirmBtn.classList.remove('loading');
+                    return showCustomAlert('暂无需要补货的批次', 'error');
+                }
+
+                try {
+                    // 更新原有批次数量
+                    appState.shelves.forEach(shelf => {
+                        const productIds = appState.shelfProducts
+                            .filter(sp => sp.shelf === shelf)
+                            .map(sp => sp.productId);
+
+                        productIds.forEach(productId => {
+                            appState.shelfBatches
+                                .filter(b => b.shelf === shelf && b.productId === productId)
+                                .forEach(batch => {
+                                    const addQty = Number(document.getElementById(`old-${productId}-${batch.batch}`).value) || 0;
+                                    if (addQty > 0) batch.qty += addQty;
+                                });
+                        });
+                    });
+
+                    // 处理新批次
+                    appState.pendingNew.forEach(item => {
+                        const existingBatch = appState.shelfBatches.find(b =>
+                            b.shelf === item.shelf && b.productId === item.productId && b.batch === item.batch
+                        );
+
+                        if (existingBatch) existingBatch.qty += item.qty;
+                        else appState.shelfBatches.push(item);
+                    });
+
+                    // 清理数量为0的批次
+                    appState.shelfBatches = appState.shelfBatches.filter(batch => batch.qty > 0);
+
+                    // 保存数据
+                    DataManager.set(STORAGE_KEYS.SHELF_BATCHES, appState.shelfBatches);
+
+                    // 清空待补货列表
+                    appState.pendingNew = [];
+
+                    showCustomAlert('全部补货上架成功！', 'success');
+                    this.renderTotal();
+                } catch (e) {
+                    console.error('补货失败:', e);
+                    showCustomAlert('补货失败，请重试', 'error');
+                } finally {
+                    // 移除加载状态
+                    confirmBtn.classList.remove('loading');
+                }
+            },
+
+            hasOldBatchReplenish() {
+                let hasReplenish = false;
+
+                appState.shelves.forEach(shelf => {
+                    const productIds = appState.shelfProducts
+                        .filter(sp => sp.shelf === shelf)
+                        .map(sp => sp.productId);
+
+                    productIds.forEach(productId => {
+                        appState.shelfBatches
+                            .filter(b => b.shelf === shelf && b.productId === productId)
+                            .forEach(batch => {
+                                const addQty = Number(document.getElementById(`old-${productId}-${batch.batch}`).value) || 0;
+                                if (addQty > 0) hasReplenish = true;
+                            });
+                    });
+                });
+
+                return hasReplenish;
+            }
+        };
+        document.addEventListener('DOMContentLoaded', function () {
+            // 初始化所有筛选框
+            ProductPage.renderCategoryFilter('filter-cat-product-batch');
+            ProductPage.renderCategoryFilter('filter-cat-total');
+
+            // 保留原有初始化代码...
+            document.querySelectorAll('.back-btn[onclick*="page-home"]').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    PageManager.go('page-home');
+                });
+            });
+
+            document.querySelectorAll('.required').forEach(el => {
+                el.style.color = '#d32f2f';
+            });
+
+            showCustomAlert('欢迎使用库存管理系统！', 'success');
+        });
+        // ========== 弹窗管理模块 ==========
+        const ModalManager = {
+            // 对修改商品弹窗的支持
+            showEditProductModal(index) {
+                ProductPage.openEditModal(index);
+            },
+            // 新增分类弹窗
+            openAddCategoryModal() {
+                document.getElementById('new-category-name').value = '';
+                this.showModal('add-category-modal');
+            },
+
+            // 保存新增分类
+            saveNewCategory() {
+                const categoryName = document.getElementById('new-category-name').value.trim();
+                if (!Utils.validateForm({ '分类名称': categoryName })) return;
+                if (appState.categories.includes(categoryName)) {
+                    showCustomAlert('该分类已存在', 'error');
+                    document.getElementById('new-category-name').style.border = '1px solid #f44336';
+                    return;
+                }
+
+                appState.categories.push(categoryName);
+                DataManager.set(STORAGE_KEYS.CATEGORIES, appState.categories);
+
+                CategoryManagementPage.render();
+                this.hideModal('add-category-modal');
+                showCustomAlert('分类添加成功', 'success');
+            },
+
+            // 打开修改分类弹窗
+            openEditCategoryModal(index, currentName) {
+                document.getElementById('edit-category-index').value = index;
+                document.getElementById('edit-category-name').value = currentName;
+                this.showModal('edit-category-modal');
+            },
+
+            // 保存修改分类
+            saveEditCategory() {
+                const index = Number(document.getElementById('edit-category-index').value);
+                const newName = document.getElementById('edit-category-name').value.trim();
+
+                if (!Utils.validateForm({ '新分类名称': newName })) return;
+                if (appState.categories.includes(newName) && appState.categories[index] !== newName) {
+                    showCustomAlert('该分类已存在', 'error');
+                    document.getElementById('edit-category-name').style.border = '1px solid #f44336';
+                    return;
+                }
+
+                // 更新分类名称（可选：同步更新已有商品的分类）
+                const oldName = appState.categories[index];
+                appState.categories[index] = newName;
+
+                // 可选：如果需要同步更新商品中的分类名称，取消下面注释
+                appState.products = appState.products.map(product => {
+                    if (product.category === oldName) {
+                        return { ...product, category: newName };
+                    }
+                    return product;
+                });
+                DataManager.set(STORAGE_KEYS.PRODUCTS, appState.products);
+
+                DataManager.set(STORAGE_KEYS.CATEGORIES, appState.categories);
+                CategoryManagementPage.render();
+                this.hideModal('edit-category-modal');
+                showCustomAlert('分类修改成功', 'success');
+            },
+
+            // 删除分类
+            deleteCategory(index, categoryName) {
+                // 检查是否有商品使用该分类
+                const hasProductUse = appState.products.some(p => p.category === categoryName);
+                if (hasProductUse) {
+                    return showCustomAlert('该分类仍有商品使用，无法删除', 'error');
+                }
+
+                if (!confirm(`确定删除分类【${categoryName}】？`)) return;
+
+                appState.categories.splice(index, 1);
+                DataManager.set(STORAGE_KEYS.CATEGORIES, appState.categories);
+
+                CategoryManagementPage.render();
+                showCustomAlert('分类删除成功', 'success');
+            },
+            // 显示弹窗
+            showModal(modalId) {
+                document.getElementById(modalId).style.display = 'flex';
+            },
+
+            // 隐藏弹窗
+            hideModal(modalId) {
+                document.getElementById(modalId).style.display = 'none';
+                // 重置弹窗内输入框样式
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    modal.querySelectorAll('input, select').forEach(el => {
+                        el.style.border = '';
+                    });
+                }
+            },
+
+            // 新增货架弹窗
+            openAddShelfModal() {
+                document.getElementById('new-shelf-name').value = '';
+                this.showModal('add-shelf-modal');
+            },
+
+            saveNewShelf() {
+                const shelfName = document.getElementById('new-shelf-name').value.trim();
+                if (!Utils.validateForm({ '货架名称': shelfName })) return;
+                if (appState.shelves.includes(shelfName)) {
+                    showCustomAlert('该货架名称已存在', 'error');
+                    document.getElementById('new-shelf-name').style.border = '1px solid #f44336';
+                    return;
+                }
+
+                appState.shelves.push(shelfName);
+                DataManager.set(STORAGE_KEYS.SHELVES, appState.shelves);
+
+                ShelfManagementPage.render();
+                this.hideModal('add-shelf-modal');
+                showCustomAlert('货架添加成功', 'success');
+            },
+
+            // 修改货架弹窗
+            openEditShelfModal(index, currentName) {
+                document.getElementById('edit-shelf-index').value = index;
+                document.getElementById('edit-shelf-name').value = currentName;
+                this.showModal('edit-shelf-modal');
+            },
+
+            saveEditShelf() {
+                const index = Number(document.getElementById('edit-shelf-index').value);
+                const newName = document.getElementById('edit-shelf-name').value.trim();
+
+                if (!Utils.validateForm({ '新名称': newName })) return;
+                if (appState.shelves.includes(newName) && appState.shelves[index] !== newName) {
+                    showCustomAlert('该货架名称已存在', 'error');
+                    document.getElementById('edit-shelf-name').style.border = '1px solid #f44336';
+                    return;
+                }
+
+                // 更新货架名称关联数据
+                const oldName = appState.shelves[index];
+                appState.shelves[index] = newName;
+
+                // 更新货架商品关联表
+                appState.shelfProducts = appState.shelfProducts.map(sp =>
+                    sp.shelf === oldName ? { ...sp, shelf: newName } : sp
+                );
+
+                // 更新货架批次表
+                appState.shelfBatches = appState.shelfBatches.map(b =>
+                    b.shelf === oldName ? { ...b, shelf: newName } : b
+                );
+
+                // 更新待补货列表
+                appState.pendingNew = appState.pendingNew.map(p =>
+                    p.shelf === oldName ? { ...p, shelf: newName } : p
+                );
+
+                // 保存所有数据
+                DataManager.set(STORAGE_KEYS.SHELVES, appState.shelves);
+                DataManager.set(STORAGE_KEYS.SHELF_PRODUCTS, appState.shelfProducts);
+                DataManager.set(STORAGE_KEYS.SHELF_BATCHES, appState.shelfBatches);
+
+                ShelfManagementPage.render();
+                this.hideModal('edit-shelf-modal');
+                showCustomAlert('货架名称修改成功', 'success');
+            },
+
+            // 删除货架
+            deleteShelf(index, shelfName) {
+                // 统计关联数据
+                const shelfProductCount = appState.shelfProducts.filter(sp => sp.shelf === shelfName).length;
+                const shelfBatchCount = appState.shelfBatches.filter(b => b.shelf === shelfName).length;
+
+                const confirmText = `确定删除货架【${shelfName}】？
+该操作将删除：
+1. 该货架下${shelfProductCount}个商品关联记录
+2. ${shelfBatchCount}个货架批次记录
+数据删除后无法恢复！`;
+
+                if (!confirm(confirmText)) return;
+
+                // 删除货架及关联数据
+                appState.shelves.splice(index, 1);
+                appState.shelfProducts = appState.shelfProducts.filter(sp => sp.shelf !== shelfName);
+                appState.shelfBatches = appState.shelfBatches.filter(b => b.shelf !== shelfName);
+                appState.pendingNew = appState.pendingNew.filter(p => p.shelf !== shelfName);
+
+                // 保存数据
+                DataManager.set(STORAGE_KEYS.SHELVES, appState.shelves);
+                DataManager.set(STORAGE_KEYS.SHELF_PRODUCTS, appState.shelfProducts);
+                DataManager.set(STORAGE_KEYS.SHELF_BATCHES, appState.shelfBatches);
+
+                ShelfManagementPage.render();
+                showCustomAlert('货架删除成功', 'success');
+            },
+            // 添加批次弹窗（货架用）
+            openAddBatchModal(shelf, productId, productName) {
+                document.getElementById('batch-modal-shelf').value = shelf;
+                document.getElementById('batch-modal-product-id').value = productId;
+                document.getElementById('batch-modal-product-name').textContent = productName;
+                document.getElementById('batch-modal-qty').value = 1;
+                document.getElementById('batch-modal-produce-date').value = ''; // 清空生产日期
+
+                this.showModal('add-batch-modal');
+            },
+
+            saveAddBatch() {
+                const shelf = document.getElementById('batch-modal-shelf').value;
+                const productId = document.getElementById('batch-modal-product-id').value;
+                const produceDate = document.getElementById('batch-modal-produce-date').value;
+                const qty = Number(document.getElementById('batch-modal-qty').value);
+
+                if (!Utils.validateForm({
+                    '生产日期': produceDate,
+                    '批次数量': qty
+                })) return;
+
+                const product = appState.products.find(p => p.id === productId);
+                if (!product) return showCustomAlert('商品不存在', 'error');
+
+                // 计算过期日期
+                const produceDateObj = new Date(produceDate);
+                const expireDateObj = new Date(produceDateObj);
+
+                const period = product.period;
+                const unit = product.unit;
+
+                if (unit === 'day') {
+                    expireDateObj.setDate(produceDateObj.getDate() + period);
+                }
+                else if (unit === 'month') {
+                    expireDateObj.setMonth(produceDateObj.getMonth() + period);
+                }
+                else if (unit === 'year') {
+                    expireDateObj.setFullYear(produceDateObj.getFullYear() + period);
+                }
+
+                // 格式化过期日期
+                const expireDateStr = expireDateObj.toISOString().split('T')[0];
+
+                // 检查是否已存在该批次
+                const existingBatch = appState.shelfBatches.find(b =>
+                    b.shelf === shelf && b.productId === productId && b.batch === produceDate
+                );
+
+                if (existingBatch) {
+                    existingBatch.qty += qty;
+                } else {
+                    appState.shelfBatches.push({
+                        shelf,
+                        productId,
+                        product: product.name,
+                        batch: produceDate, // 生产日期作为批次标识
+                        expire: expireDateStr,
+                        qty
+                    });
+                }
+
+                // 保存数据
+                DataManager.set(STORAGE_KEYS.SHELF_BATCHES, appState.shelfBatches);
+
+                this.hideModal('add-batch-modal');
+                ShelfManagementPage.render();
+                PageManager.go('page-shelf-management');
+                showCustomAlert('批次添加成功', 'success');
+            },
+
+            // 修改货架商品最大容量弹窗
+            openEditShelfProductMaxModal(shelf, productId, productName, currentMax) {
+                document.getElementById('edit-max-shelf').value = shelf;
+                document.getElementById('edit-max-product-id').value = productId;
+                document.getElementById('edit-max-product-name').textContent = productName;
+                document.getElementById('edit-max-qty').value = currentMax;
+
+                this.showModal('edit-shelf-product-max-modal');
+            },
+
+            saveEditShelfProductMax() {
+                const shelf = document.getElementById('edit-max-shelf').value;
+                const productId = document.getElementById('edit-max-product-id').value;
+                const newMax = Number(document.getElementById('edit-max-qty').value);
+
+                if (!Utils.validateForm({ '此货架该商品最大容量': newMax })) return;
+
+                // 更新货架商品满仓数
+                const shelfProductIndex = appState.shelfProducts.findIndex(sp =>
+                    sp.shelf === shelf && sp.productId === productId
+                );
+
+                if (shelfProductIndex !== -1) {
+                    appState.shelfProducts[shelfProductIndex].max = newMax;
+                    DataManager.set(STORAGE_KEYS.SHELF_PRODUCTS, appState.shelfProducts);
+
+                    this.hideModal('edit-shelf-product-max-modal');
+                    ShelfManagementPage.render();
+                    showCustomAlert('此货架该商品最大容量修改成功', 'success');
+                } else {
+                    showCustomAlert('商品不在该货架中', 'error');
+                }
+            }
+        };
+
+        // ========== 库存预览辅助函数 ==========
+        function showStockPreview(shelf, productId, inputValue) {
+            const previewEl = document.getElementById(`preview-${shelf}-${productId}-${inputValue}`);
+            if (!previewEl) return;
+
+            const currentQty = Number(inputValue) || 0;
+            const afterQty = Utils.calculateAfterReplenishQty(shelf, productId, currentQty);
+            const maxQty = Utils.getShelfProductMax(shelf, productId);
+
+            previewEl.textContent = `补货后库存：${afterQty}件 / 此货架该商品最大容量：${maxQty}件`;
+
+            // 超出容量标红提示
+            if (afterQty > maxQty) {
+                previewEl.style.color = '#f44336';
+                previewEl.textContent += '（超出货架容量）';
+            } else {
+                previewEl.style.color = '#007aff';
+            }
+        }
+
+        function showReplenishPreview(shelf, productId, batch, inputValue) {
+            const previewEl = document.getElementById(`replenish-preview-${shelf}-${productId}-${batch}`);
+            if (!previewEl) return;
+
+            const addQty = Number(inputValue) || 0;
+            const batchItem = appState.shelfBatches.find(b =>
+                b.shelf === shelf && b.productId === productId && b.batch === batch
+            );
+            const currentQty = batchItem ? batchItem.qty : 0;
+            const afterQty = currentQty + addQty;
+            const maxQty = Utils.getShelfProductMax(shelf, productId);
+
+            previewEl.textContent = `补货后库存：${afterQty}件 / 此货架该商品最大容量：${maxQty}件`;
+
+            if (afterQty > maxQty) {
+                previewEl.style.color = '#f44336';
+                previewEl.textContent += '（超出此货架该商品最大容量）';
+            } else {
+                previewEl.style.color = '#007aff';
+            }
+        }
+
+        // ========== 应用初始化 ==========
+        let appState = DataManager.init();
+
+        // 初始化首页
+        HomePage.render();
+
+        // 监听页面加载完成事件
+        document.addEventListener('DOMContentLoaded', function () {
+            // 初始化所有页面的返回首页按钮
+            document.querySelectorAll('.back-btn[onclick*="page-home"]').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    PageManager.go('page-home');
+                });
+            });
+
+            // 为所有必填项添加样式提示
+            document.querySelectorAll('.required').forEach(el => {
+                el.style.color = '#d32f2f';
+            });
+
+            showCustomAlert('欢迎使用库存管理系统！', 'success');
+        });
+        // ========== 分类管理页面 ==========
+        const CategoryManagementPage = {
+            render() {
+                let html = '';
+                if (appState.categories.length === 0) {
+                    html = '<div class="item">暂无分类，请先添加</div>';
+                } else {
+                    appState.categories.forEach((category, index) => {
+                        html += `
+                    <div class="item">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <strong>${category}</strong>
+                            <div class="shelf-actions">
+                                <button class="warning shelf-action-btn" onclick="ModalManager.openEditCategoryModal(${index}, '${category}')">修改</button>
+                                <button class="danger shelf-action-btn" onclick="ModalManager.deleteCategory(${index}, '${category}')">删除</button>
+                            </div>
+                        </div>
+                    </div>`;
+                    });
+                }
+                document.getElementById('category-list').innerHTML = html;
+            }
+        };
+        // ========== 商品搜索功能模块 ==========
+        const ProductSearch = {
+            // 初始化商品搜索框
+            init(searchInputId, suggestionsId, selectedId) {
+                const searchInput = document.getElementById(searchInputId);
+                const suggestionsEl = document.getElementById(suggestionsId);
+                const selectedInput = document.getElementById(selectedId);
+
+                if (!searchInput || !suggestionsEl || !selectedInput) return;
+
+                // 输入事件
+                searchInput.addEventListener('input', (e) => {
+                    const keyword = e.target.value.trim().toLowerCase();
+                    this.showSuggestions(keyword, suggestionsEl, selectedInput, searchInput);
+                });
+
+                // 失去焦点时隐藏建议列表（延迟执行，让点击事件先触发）
+                searchInput.addEventListener('blur', () => {
+                    setTimeout(() => {
+                        suggestionsEl.style.display = 'none';
+                    }, 200);
+                });
+
+                // 获得焦点时显示建议列表
+                searchInput.addEventListener('focus', (e) => {
+                    const keyword = e.target.value.trim().toLowerCase();
+                    this.showSuggestions(keyword, suggestionsEl, selectedInput, searchInput);
+                });
+
+                // 新增：阻止回车提交表单
+                searchInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        // 自动选择第一个建议项
+                        const firstItem = suggestionsEl.querySelector('.search-suggestion-item');
+                        if (firstItem) {
+                            firstItem.click();
+                        }
+                    }
+                });
+            },
+
+            // 显示搜索建议
+            showSuggestions(keyword, suggestionsEl, selectedInput, searchInput) {
+                // 清空建议列表
+                suggestionsEl.innerHTML = '';
+
+                if (!keyword) {
+                    suggestionsEl.style.display = 'none';
+                    selectedInput.value = '';
+                    return;
+                }
+
+                // 筛选匹配的商品
+                const matchedProducts = appState.products.filter(product =>
+                    product.name.toLowerCase().includes(keyword) ||
+                    product.category.toLowerCase().includes(keyword)
+                );
+
+                // 排序：完全匹配开头的排前面，然后按名称长度排序
+                matchedProducts.sort((a, b) => {
+                    const aStartsWith = a.name.toLowerCase().startsWith(keyword) ? 0 : 1;
+                    const bStartsWith = b.name.toLowerCase().startsWith(keyword) ? 0 : 1;
+
+                    if (aStartsWith !== bStartsWith) {
+                        return aStartsWith - bStartsWith;
+                    }
+
+                    // 按匹配度（关键词出现位置）排序
+                    const aIndex = a.name.toLowerCase().indexOf(keyword);
+                    const bIndex = b.name.toLowerCase().indexOf(keyword);
+
+                    if (aIndex !== bIndex) {
+                        return aIndex - bIndex;
+                    }
+
+                    // 最后按名称长度排序
+                    return a.name.length - b.name.length;
+                });
+
+                if (matchedProducts.length === 0) {
+                    suggestionsEl.innerHTML = '<div class="search-suggestion-item">无匹配商品</div>';
+                    suggestionsEl.style.display = 'block';
+                    return;
+                }
+
+                // 显示建议列表
+                matchedProducts.forEach(product => {
+                    const item = document.createElement('div');
+                    item.className = 'search-suggestion-item';
+                    item.innerHTML = `${product.name} [${product.category}]`;
+
+                    // 点击选择商品 - 优化事件绑定
+                    item.onclick = () => {
+                        // 设置输入框值和选中的商品ID
+                        searchInput.value = product.name;
+                        selectedInput.value = product.id;
+                        // 隐藏建议列表
+                        suggestionsEl.style.display = 'none';
+                        // 保持输入框焦点
+                        searchInput.focus();
+                        // 高亮反馈
+                        item.classList.add('highlight');
+                        setTimeout(() => {
+                            item.classList.remove('highlight');
+                        }, 500);
+                    };
+
+                    suggestionsEl.appendChild(item);
+                });
+
+                suggestionsEl.style.display = 'block';
+            },
+
+            // 获取选中的商品ID
+            getSelectedProductId(selectedId) {
+                return document.getElementById(selectedId).value || '';
+            }
+        };
+    </script>
+</body>
+
+</html>
