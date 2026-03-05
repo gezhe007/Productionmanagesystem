@@ -5,7 +5,7 @@
       style="display: flex; justify-content: center; margin-bottom: 20px"
     >
       <h2>仓库管理</h2>
-      <!-- <el-button type="success" @click="CLEAR_ALL_DATA">清空所有数据</el-button> -->
+      <el-button type="success" @click="CLEAR_ALL_DATA">清空所有数据</el-button>
     </div>
 
     <div class="warehouse-module">
@@ -13,13 +13,14 @@
         <span style="width: 100px; font-size: 16px; font-weight: 500"
           >筛选分类：</span
         >
-        <el-select v-model="filterCat" placeholder="全部" style="width: 200px">
-          <el-option label="全部" value=""></el-option>
+        <!-- 修复1：筛选下拉框绑定分类ID（数字），而非整个对象 -->
+        <el-select v-model="filterCatId" placeholder="全部" style="width: 200px">
+          <el-option label="全部" :value="0"></el-option>
           <el-option
             v-for="category in categories"
-            :key="category"
-            :label="category"
-            :value="category"
+            :key="category.id"
+            :label="category.name"
+            :value="category.id"
           ></el-option>
         </el-select>
         <el-button type="success" @click="openAddModal">添加新商品</el-button>
@@ -37,7 +38,7 @@
         >
           <el-row type="flex" justify="space-between">
             <el-col :span="10">
-              <strong>[{{ product.category }}] {{ product.name }}</strong>
+              <strong>[{{ product.category.name }}] {{ product.name }}</strong>
               <div style="font-size: 12px; color: #666; margin-top: 4px">
                 标准保质期：{{ product.period }}{{ product.unit }}
               </div>
@@ -81,13 +82,14 @@
             placeholder="请输入商品名称"
           ></el-input>
         </el-form-item>
-        <el-form-item label="分类" prop="category">
-          <el-select v-model="product.category" placeholder="请选择分类">
+        <el-form-item label="分类" prop="categoryId">
+          <!-- 修复2：弹窗下拉框绑定分类ID（数字），而非对象 -->
+          <el-select v-model="product.categoryId" placeholder="请选择分类">
             <el-option
               v-for="category in categories"
-              :key="category"
-              :label="category"
-              :value="category"
+              :key="category.id"
+              :label="category.name"
+              :value="category.id"
             ></el-option>
           </el-select>
         </el-form-item>
@@ -134,13 +136,14 @@
             placeholder="请输入商品名称"
           ></el-input>
         </el-form-item>
-        <el-form-item label="分类" prop="category">
-          <el-select v-model="product.category" placeholder="请选择分类">
+        <el-form-item label="分类" prop="categoryId">
+          <!-- 修复2：弹窗下拉框绑定分类ID（数字），而非对象 -->
+          <el-select v-model="product.categoryId" placeholder="请选择分类">
             <el-option
               v-for="category in categories"
-              :key="category"
-              :label="category"
-              :value="category"
+              :key="category.id"
+              :label="category.name"
+              :value="category.id"
             ></el-option>
           </el-select>
         </el-form-item>
@@ -178,7 +181,6 @@
         <div>1. 该商品在货架的关联记录</div>
         <div>2. 货架上该商品相关的批次记录</div>
       </div>
-      <el-discription></el-discription>
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="deleteModalVisible = false">取消</el-button>
@@ -197,7 +199,8 @@ export default {
   name: "Warehouse",
   data() {
     return {
-      filterCat: "",
+      // 修复1：筛选值改为数字类型（0代表全部）
+      filterCatId: 0,
 
       addModalVisible: false,
       editModalVisible: false,
@@ -205,7 +208,8 @@ export default {
       product: {
         id: "",
         name: "",
-        category: "",
+        // 修复2：用categoryId（数字）替代category（对象）
+        categoryId: 0,
         period: "",
         unit: "天",
       },
@@ -219,8 +223,10 @@ export default {
             trigger: "blur",
           },
         ],
-        category: [
+        // 修复2：验证规则改为categoryId
+        categoryId: [
           { required: true, message: "请选择分类", trigger: "change" },
+          { type: "number", min: 1, message: "请选择有效分类", trigger: "change" }
         ],
         period: [
           { required: true, message: "请输入保质期数值", trigger: "blur" },
@@ -244,9 +250,14 @@ export default {
     ]),
     ...mapGetters(["getProductById"]),
     filteredProducts() {
-      if (!this.filterCat) return this.products;
-      return this.products.filter((p) => p.category === this.filterCat);
+      // 修复1：筛选逻辑改为基于categoryId
+      if (this.filterCatId === 0) return this.products;
+      return this.products.filter((p) => p.category.id === this.filterCatId);
     },
+    // 辅助：根据ID快速查找分类对象
+    getCategoryById() {
+      return (id) => this.categories.find(cat => cat.id === id) || {};
+    }
   },
   methods: {
     ...mapMutations([
@@ -272,7 +283,7 @@ export default {
         this.product = {
           id: "",
           name: "",
-          category: "",
+          categoryId: 0,
           period: "",
           unit: "天",
         };
@@ -283,9 +294,10 @@ export default {
       this.$refs.addFormRef.validate(async (valid) => {
         if (!valid) return;
 
+        // 修复2：验证逻辑改为categoryId
         const validateResult = validateForm({
           商品名: this.product.name.trim(),
-          分类: this.product.category,
+          分类: this.getCategoryById(this.product.categoryId),
           保质期数值: this.product.period,
         });
 
@@ -302,10 +314,15 @@ export default {
           return;
         }
 
+        const newProductId = this.products.length > 0 
+          ? this.products[this.products.length - 1].id + 1 
+          : 1;
+
+        // 修复2：组装商品数据时，把categoryId转为分类对象
         const newProduct = {
-          id: generateId(this.product.name.trim()),
+          id: newProductId,
           name: this.product.name.trim(),
-          category: this.product.category,
+          category: this.getCategoryById(this.product.categoryId),
           period: this.product.period,
           unit: this.product.unit,
         };
@@ -318,7 +335,14 @@ export default {
 
     openEditModal(product) {
       this.resetEditForm();
-      this.product = { ...product };
+      // 修复2：编辑时把分类对象转为categoryId
+      this.product = {
+        id: product.id,
+        name: product.name,
+        categoryId: product.category.id,
+        period: product.period,
+        unit: product.unit,
+      };
       this.editModalVisible = true;
     },
 
@@ -334,9 +358,10 @@ export default {
       this.$refs.editFormRef.validate(async (valid) => {
         if (!valid) return;
 
+        // 修复2：验证逻辑改为categoryId
         const validateResult = validateForm({
           商品名: this.product.name.trim(),
-          分类: this.product.category,
+          分类: this.getCategoryById(this.product.categoryId),
           保质期数值: this.product.period,
         });
 
@@ -355,7 +380,14 @@ export default {
         }
 
         const productId = this.product.id;
-        const newProduct = this.product;
+        // 修复2：组装新商品数据时，把categoryId转为分类对象
+        const newProduct = {
+          id: productId,
+          name: this.product.name.trim(),
+          category: this.getCategoryById(this.product.categoryId),
+          period: this.product.period,
+          unit: this.product.unit,
+        };
         const newProducts = this.products.map((product) => {
           if (product.id === productId) {
             return newProduct;
@@ -384,7 +416,7 @@ export default {
             return {
               ...sp,
               name: this.product.name.trim(),
-              category: this.product.category,
+              category: newProduct.category,
               shelfLife: this.product.period,
               shelfLifeUnit: this.product.unit,
             };

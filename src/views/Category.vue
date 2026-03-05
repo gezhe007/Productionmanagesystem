@@ -16,8 +16,8 @@
       <div
         v-else
         class="item"
-        v-for="(category, index) in categories"
-        :key="index"
+        v-for="category in categories"
+        :key="category.id"
       >
         <div
           style="
@@ -26,18 +26,18 @@
             align-items: center;
           "
         >
-          <strong>{{ category }}</strong>
+          <strong>{{ category.name }}</strong>
           <div class="shelf-actions">
             <el-button
               type="warning"
               size="mini"
-              @click="openEditModal(index, category)"
+              @click="openEditModal(category)"
               >修改</el-button
             >
             <el-button
               type="danger"
               size="mini"
-              @click="deleteCategory(index, category)"
+              @click="openDeleteModal(category)"
               >删除</el-button
             >
           </div>
@@ -49,18 +49,18 @@
     <el-dialog
       title="新增分类"
       :visible.sync="addModalVisible"
-      width="400px"
+      width="380px"
       @close="resetAddForm"
     >
       <el-form
-        :model="addForm"
+        :model="category"
         :rules="formRules"
-        ref="addForm"
+        ref="addFormRef"
         label-width="100px"
       >
         <el-form-item label="分类名称" prop="name">
           <el-input
-            v-model="addForm.name"
+            v-model="category.name"
             placeholder="如：日用品、零食"
           ></el-input>
         </el-form-item>
@@ -75,18 +75,18 @@
     <el-dialog
       title="修改分类"
       :visible.sync="editModalVisible"
-      width="400px"
+      width="380px"
       @close="resetEditForm"
     >
       <el-form
-        :model="editForm"
+        :model="category"
         :rules="formRules"
-        ref="editForm"
+        ref="editFormRef"
         label-width="100px"
       >
         <el-form-item label="新分类名称" prop="name">
           <el-input
-            v-model="editForm.name"
+            v-model="category.name"
             placeholder="如：日用品、零食"
           ></el-input>
         </el-form-item>
@@ -96,11 +96,25 @@
         <el-button type="primary" @click="saveEditForm">保存</el-button>
       </div>
     </el-dialog>
+    <el-dialog
+      :visible.sync="deleteModalVisible"
+      width="350px"
+      @close="deleteModalVisible = false"
+      ><div style="margin: 10px 30px; font-size: 17px; text-align: center">
+        <strong>确定删除分类【{{ category.name }}】?</strong>
+      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="deleteModalVisible = false">取消</el-button>
+          <el-button type="primary" @click="confirmDelete">确定</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { mapState, mapMutations } from 'vuex'
+import { mapState, mapMutations } from "vuex";
 import { validateForm } from "@/utils/helpers";
 export default {
   name: "Category",
@@ -109,17 +123,11 @@ export default {
       // 弹窗状态
       addModalVisible: false,
       editModalVisible: false,
-
-      // 表单数据
-      addForm: {
+      deleteModalVisible: false,
+      category: {
+        id: "",
         name: "",
       },
-      editForm: {
-        name: "",
-        index: -1,
-        oldName: "",
-      },
-
       // 表单校验规则
       formRules: {
         name: [{ required: true, message: "请输入分类名称", trigger: "blur" }],
@@ -128,16 +136,14 @@ export default {
   },
   computed: {
     // 从Vuex全局状态中获取分类和商品数据（自动响应式更新）
-    ...mapState(['categories', 'products'])
+    ...mapState(["categories", "products"]),
   },
   methods: {
-    // 映射Vuex的mutations方法（用于更新全局状态）
     ...mapMutations([
-      'UPDATE_CATEGORIES', // 更新分类列表
-      'UPDATE_PRODUCTS'    // 更新商品列表
+      "UPDATE_CATEGORIES", // 更新分类列表
+      "UPDATE_PRODUCTS", // 更新商品列表
     ]),
 
-    // 打开新增分类弹窗
     openAddModal() {
       this.resetAddForm();
       this.addModalVisible = true;
@@ -145,20 +151,23 @@ export default {
 
     // 重置新增表单
     resetAddForm() {
-      this.addForm = {
-        name: "",
-      };
-      if (this.$refs.addForm) {
-        this.$refs.addForm.resetFields();
+      if (this.$refs.addFormRef) {
+        this.$refs.addFormRef.clearValidate();
+      }
+      if (!this.addModalVisible) {
+        this.category = {
+          id: "",
+          name: "",
+        };
       }
     },
 
     // 保存新增分类
     saveAddForm() {
-      this.$refs.addForm.validate((valid) => {
+      this.$refs.addFormRef.validate((valid) => {
         if (!valid) return;
 
-        const categoryName = this.addForm.name.trim();
+        const categoryName = this.category.name.trim();
         const validateResult = validateForm({ 分类名称: categoryName });
 
         if (!validateResult.valid) {
@@ -170,40 +179,42 @@ export default {
           this.$message.error("该分类已存在");
           return;
         }
+        const newCategoryId =
+          this.categories.length > 0
+            ? this.categories[this.categories.length - 1].id + 1
+            : 1;
 
-        // 1. 新增分类（基于现有数组创建新数组，符合Vuex状态更新规范）
-        const newCategories = [...this.categories, categoryName];
-        // 2. 调用Vuex mutation更新全局状态（自动同步到本地存储）
+        const newCategory = {
+          id: newCategoryId,
+          name: categoryName,
+        };
+        const newCategories = [...this.categories, newCategory];
         this.UPDATE_CATEGORIES(newCategories);
 
-        this.$message.success("分类添加成功");
+        this.$message.success(`分类【${newCategory.name}】添加成功`);
         this.addModalVisible = false;
       });
     },
 
     // 打开修改分类弹窗
-    openEditModal(index, currentName) {
-      this.editForm = {
-        name: currentName,
-        index: index,
-        oldName: currentName,
-      };
+    openEditModal(category) {
+      this.category = { ...category };
       this.editModalVisible = true;
     },
 
     // 重置编辑表单
     resetEditForm() {
-      if (this.$refs.editForm) {
-        this.$refs.editForm.resetFields();
+      if (this.$refs.editFormRef) {
+        this.$refs.editFormRef.clearValidate();
       }
     },
 
     // 保存修改分类
     saveEditForm() {
-      this.$refs.editForm.validate((valid) => {
+      this.$refs.editFormRef.validate((valid) => {
         if (!valid) return;
 
-        const newName = this.editForm.name.trim();
+        const newName = this.category.name.trim();
         const validateResult = validateForm({ 新分类名称: newName });
 
         if (!validateResult.valid) {
@@ -211,23 +222,20 @@ export default {
           return;
         }
 
-        if (
-          this.categories.includes(newName) &&
-          this.categories[this.editForm.index] !== newName
-        ) {
+        if (this.categories.includes(newName)) {
           this.$message.error("该分类已存在");
           return;
         }
-
-        // 1. 更新分类名称（创建新数组，避免直接修改原数组）
-        const oldName = this.editForm.oldName;
-        const newCategories = [...this.categories];
-        newCategories[this.editForm.index] = newName;
-
-        // 2. 同步更新已有商品的分类（创建新数组）
+        const newCategory = this.category;
+        const newCategories = this.categories.map((category) => {
+          if (category.id === this.category.id) {
+            return newCategory;
+          }
+          return category;
+        });
         const newProducts = this.products.map((product) => {
-          if (product.category === oldName) {
-            return { ...product, category: newName };
+          if (product.category.id === newCategory.id) {
+            return { ...product, category: newCategory };
           }
           return product;
         });
@@ -236,39 +244,29 @@ export default {
         this.UPDATE_CATEGORIES(newCategories);
         this.UPDATE_PRODUCTS(newProducts);
 
-        this.$message.success("分类修改成功");
+        this.$message.success(`分类【${newCategory.name}】修改成功`);
         this.editModalVisible = false;
       });
     },
-
+    openDeleteModal(category) {
+      this.category = { ...category };
+      this.deleteModalVisible = true;
+    },
     // 删除分类
-    deleteCategory(index, categoryName) {
-      // 检查是否有商品使用该分类
+    confirmDelete(category) {
       const hasProductUse = this.products.some(
-        (p) => p.category === categoryName
+        (p) => p.category.id === category.id
       );
       if (hasProductUse) {
         this.$message.error("该分类仍有商品使用，无法删除");
         return;
       }
-
-      this.$confirm(`确定删除分类【${categoryName}】？`, "提示", {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning",
-      })
-        .then(() => {
-          // 1. 删除分类（创建新数组）
-          const newCategories = [...this.categories];
-          newCategories.splice(index, 1);
-          // 2. 调用Vuex mutation更新全局状态
-          this.UPDATE_CATEGORIES(newCategories);
-
-          this.$message.success("分类删除成功");
-        })
-        .catch(() => {
-          this.$message.info("已取消删除");
-        });
+      const newCategories = this.categories.filter(
+        (category) => category.id !== this.category.id
+      );
+      this.UPDATE_CATEGORIES(newCategories);
+      this.$message.success(`删除分类【${this.category.name}】成功！`);
+      this.deleteModalVisible = false;
     },
   },
 };

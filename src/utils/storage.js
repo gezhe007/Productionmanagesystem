@@ -80,19 +80,19 @@ export const Storage = {
     let products = this.get(STORAGE_KEYS.PRODUCTS);
     if (products.length === 0) {
       products = [  // 测试商品（无数据时用）
-        { id: 'p1', name: '方便面', category: '食品', period: 1, unit: '天' },
-        { id: 'p2', name: '矿泉水', category: '饮品', period: 1, unit: '天' },
-        { id: 'p3', name: '卫生纸', category: '日用品', period: 1, unit: '天' }
+        { id: 1, name: '泡面', category: {id:33,name:'泡面'}, period: 1, unit: '天' },
+        { id: 2, name: '矿泉水', category:{id:4,name:'矿泉水'}, period: 1, unit: '天' },
+        { id: 3, name: '卫生纸', category:{id:13,name:'生活用品'}, period: 1, unit: '天' }
       ];
       this.set(STORAGE_KEYS.PRODUCTS, products);
     }
     let shelfBatches = this.get(STORAGE_KEYS.SHELF_BATCHES)
-    if (shelfBatches.length===0){
+    if (shelfBatches.length === 0) {
       shelfBatches = []
       this.set(STORAGE_KEYS.SHELF_BATCHES, shelfBatches);
     }
     let shelfProducts = this.get(STORAGE_KEYS.SHELF_PRODUCTS);
-    if (shelfBatches.length===0){
+    if (shelfBatches.length === 0) {
       shelfBatches = []
       this.set(STORAGE_KEYS.SHELF_PRODUCTS, shelfProducts);
     }
@@ -105,10 +105,56 @@ export const Storage = {
     let categories = this.get(STORAGE_KEYS.CATEGORIES);
     if (categories.length === 0) {
       categories = [
-        '牛奶', '啤酒', '饮料', '矿泉水', '槟榔', '散装零食', '糖果', '饼干', '薯片', '玩具', '雪糕', '干果',
-        '生活用品', '沐浴露', '洗衣液', '蚊香', '洗手液', '洗面奶', '洗发露', '牙刷', '牙膏', '毛巾', '纸巾', '卫生巾', '洗洁精',
-        '洗衣粉', '辣条', '榨菜', '瓜子', '花生', '面包', '火腿肠', '泡面', '油', '盐', '罐头', '酱油', '蚝油', '一次性内裤', '充电器',
-        '手套', '刷子', '筷子', '袜子', '剃须刀', '唇膏', '白酒', '红酒', '电池', '扑克牌'
+        { id: 1, name: '牛奶' },
+        { id: 2, name: '啤酒' },
+        { id: 3, name: '饮料' },
+        { id: 4, name: '矿泉水' },
+        { id: 5, name: '槟榔' },
+        { id: 6, name: '散装零食' },
+        { id: 7, name: '糖果' },
+        { id: 8, name: '饼干' },
+        { id: 9, name: '薯片' },
+        { id: 10, name: '玩具' },
+        { id: 11, name: '雪糕' },
+        { id: 12, name: '干果' },
+        { id: 13, name: '生活用品' },
+        { id: 14, name: '沐浴露' },
+        { id: 15, name: '洗衣液' },
+        { id: 16, name: '蚊香' },
+        { id: 17, name: '洗手液' },
+        { id: 18, name: '洗面奶' },
+        { id: 19, name: '洗发露' },
+        { id: 20, name: '牙刷' },
+        { id: 21, name: '牙膏' },
+        { id: 22, name: '毛巾' },
+        { id: 23, name: '纸巾' },
+        { id: 24, name: '卫生巾' },
+        { id: 25, name: '洗洁精' },
+        { id: 26, name: '洗衣粉' },
+        { id: 27, name: '辣条' },
+        { id: 28, name: '榨菜' },
+        { id: 29, name: '瓜子' },
+        { id: 30, name: '花生' },
+        { id: 31, name: '面包' },
+        { id: 32, name: '火腿肠' },
+        { id: 33, name: '泡面' },
+        { id: 34, name: '油' },
+        { id: 35, name: '盐' },
+        { id: 36, name: '罐头' },
+        { id: 37, name: '酱油' },
+        { id: 38, name: '蚝油' },
+        { id: 39, name: '一次性内裤' },
+        { id: 40, name: '充电器' },
+        { id: 41, name: '手套' },
+        { id: 42, name: '刷子' },
+        { id: 43, name: '筷子' },
+        { id: 44, name: '袜子' },
+        { id: 45, name: '剃须刀' },
+        { id: 46, name: '唇膏' },
+        { id: 47, name: '白酒' },
+        { id: 48, name: '红酒' },
+        { id: 49, name: '电池' },
+        { id: 50, name: '扑克牌' }
       ];
       this.set(STORAGE_KEYS.CATEGORIES, categories);
     }
