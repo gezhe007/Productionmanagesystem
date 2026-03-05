@@ -5,13 +5,8 @@
     </div>
 
     <!-- 顶部操作栏 -->
-    <el-row :gutter="10" style="margin: 15px 0">
-      <el-col :span="12">
-        <el-button type="success" @click="openAddShelfModal"
-          >新增货架</el-button
-        >
-      </el-col>
-      <el-col :span="12" style="text-align: right"></el-col>
+    <el-row type="flex" justify="end" style="margin: 15px 0">
+      <el-button type="success" @click="openAddShelfModal">新增货架</el-button>
     </el-row>
 
     <!-- 货架列表 -->
@@ -73,7 +68,7 @@
             <!-- 商品批次列表 -->
             <div style="margin-top: 8px">
               <div v-if="getProductBatches(shelf, product.id).length === 0">
-                <el-tag type="info" size="mini">暂无批次记录</el-tag>
+                <el-tag type="info">暂无批次记录</el-tag>
               </div>
               <div
                 v-for="batch in getProductBatches(shelf, product.id)"
@@ -88,9 +83,7 @@
                 <el-row :gutter="10">
                   <el-col :span="12">
                     <!-- 批次基础信息 -->
-                    <span style="font-weight: 500"
-                      >生产日期：{{ batch.batch }}</span
-                    >
+                    <span style="font-weight: 400">{{ batch.batch }}</span>
                     <el-tag
                       :type="batchStatus.cls"
                       size="mini"
@@ -99,9 +92,6 @@
                     >
                       {{ batchStatus.text }}
                     </el-tag>
-                    <span style="font-size: 12px; margin-left: 8px">
-                      | 过期日期：{{ batch.expire }}
-                    </span>
                     <!-- 剩余保质期天数 -->
                     <span
                       style="font-size: 12px; margin-left: 8px; color: #666"
@@ -122,9 +112,7 @@
                         )
                       "
                       size="mini"
-                      style="width: 100px"
                     ></el-input-number>
-                    <span style="font-size: 12px">件</span>
                   </el-col>
                   <el-col :span="4">
                     <el-button
@@ -349,6 +337,34 @@
         </div>
       </template>
     </el-dialog>
+    <!-- 6. 删除批次弹窗 -->
+    <el-dialog
+      :title="是否选择如下批次"
+      :visible.sync="deleteBatchModalVisible"
+      width="380px"
+    >
+      <el-form
+        :model="editMaxQtyForm"
+        :rules="editMaxQtyRules"
+        ref="editMaxQtyFormRef"
+      >
+        <el-form-item label="新最大容量" prop="newMax">
+          <el-input-number
+            v-model="editMaxQtyForm.newMax"
+            :min="1"
+            :step="1"
+            placeholder="请输入新的最大存放数量"
+          ></el-input-number>
+          <span style="font-size: 12px; margin-left: 5px">件</span>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="editMaxQtyModalVisible = false">取消</el-button>
+          <el-button type="primary" @click="saveEditMaxQty">保存</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -435,7 +451,6 @@ export default {
           },
         ],
       },
-      batchStatus: {}, // 临时存储批次状态
     };
   },
   computed: {

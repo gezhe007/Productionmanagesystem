@@ -1,27 +1,13 @@
 /**
- * 通用工具函数库
- * 包含：ID生成、日期计算、数据筛选、表单验证、库存计算等功能
- */
-
-/**
- * 生成唯一ID
- * @param {string} prefix ID前缀（默认：id）
- * @returns {string} 带时间戳和随机数的唯一ID
- */
-export function generateId(prefix = 'id') {
-  return `${prefix}_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
-}
-
-/**
  * 根据生产日期、保质期和单位计算过期日期
  * @param {string} produceDate 生产日期（YYYY-MM-DD）
  * @param {number} period 保质期时长
- * @param {string} unit 保质期单位（day/month/year）
+ * @param {string} unit 保质期单位（天/月/年）
  * @returns {string} 过期日期（YYYY-MM-DD）| 空字符串（参数无效时）
  */
 export function calculateExpireDate(produceDate, period, unit) {
   // 入参校验
-  if (!produceDate || isNaN(period) || period <= 0 || !['day', 'month', 'year'].includes(unit)) {
+  if (!produceDate || isNaN(period) || period <= 0 || !['天', '月', '年'].includes(unit)) {
     console.warn('计算过期日期失败：参数无效', { produceDate, period, unit });
     return '';
   }
@@ -35,20 +21,28 @@ export function calculateExpireDate(produceDate, period, unit) {
 
   const expireDateObj = new Date(produceDateObj);
   switch (unit) {
-    case 'day':
+    case '天':
       expireDateObj.setDate(produceDateObj.getDate() + period);
       break;
-    case 'month':
+    case '月':
       expireDateObj.setMonth(produceDateObj.getMonth() + period);
       break;
-    case 'year':
+    case '年':
       expireDateObj.setFullYear(produceDateObj.getFullYear() + period);
       break;
   }
 
   return expireDateObj.toISOString().split('T')[0];
 }
-
+/**
+ * 生成商品ID
+ * @param {string} productName 商品名
+ * @returns {id} 商品ID
+ */
+export function generateId(productName){
+  const id=`${productName}_${new Date().toISOString().split('T')[0]}`
+  return id
+}
 /**
  * 获取指定货架上的商品列表（关联商品详情）
  * @param {string} shelf 货架名称

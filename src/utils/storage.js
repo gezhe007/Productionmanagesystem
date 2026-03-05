@@ -50,7 +50,7 @@ export const Storage = {
   getExpireThreshold() {
     try {
       const threshold = localStorage.getItem(STORAGE_KEYS.EXPIRE_THRESHOLD);
-      return threshold ? parseInt(threshold) : 3;
+      return threshold ? parseInt(threshold) : 7;
     } catch (e) {
       console.error('读取临期阈值失败:', e);
       return 3;
@@ -73,42 +73,35 @@ export const Storage = {
   },
 
   /**
-   * 初始化默认数据（补全缺失字段、设置默认值）
+   * 初始化默认数据（设置默认值）
    * @returns {object} 初始化后的基础数据对象
    */
   init() {
-    // 1. 初始化商品数据（补全ID）
     let products = this.get(STORAGE_KEYS.PRODUCTS);
-    if (products.length > 0 && !products[0]?.id) {
-      products = products.map((p, i) => ({
-        ...p,
-        id: `prod_${Date.now()}_${i}`
-      }));
+    if (products.length === 0) {
+      products = [  // 测试商品（无数据时用）
+        { id: 'p1', name: '方便面', category: '食品', period: 1, unit: '天' },
+        { id: 'p2', name: '矿泉水', category: '饮品', period: 1, unit: '天' },
+        { id: 'p3', name: '卫生纸', category: '日用品', period: 1, unit: '天' }
+      ];
       this.set(STORAGE_KEYS.PRODUCTS, products);
     }
-
-    // 2. 初始化货架商品关联数据（补全max字段）
+    let shelfBatches = this.get(STORAGE_KEYS.SHELF_BATCHES)
+    if (shelfBatches.length===0){
+      shelfBatches = []
+      this.set(STORAGE_KEYS.SHELF_BATCHES, shelfBatches);
+    }
     let shelfProducts = this.get(STORAGE_KEYS.SHELF_PRODUCTS);
-    if (shelfProducts.length > 0 && !shelfProducts[0]?.max) {
-      shelfProducts = shelfProducts.map(sp => ({
-        ...sp,
-        max: 10
-      }));
+    if (shelfBatches.length===0){
+      shelfBatches = []
       this.set(STORAGE_KEYS.SHELF_PRODUCTS, shelfProducts);
     }
-
-    // 3. 初始化空数据默认值
-    !localStorage.getItem(STORAGE_KEYS.SHELF_PRODUCTS) && this.set(STORAGE_KEYS.SHELF_PRODUCTS, []);
-    !localStorage.getItem(STORAGE_KEYS.EXPIRE_THRESHOLD) && this.setExpireThreshold(3);
-
-    // 4. 初始化默认货架列表
+    let expireThreshold = this.getExpireThreshold()
     let shelves = this.get(STORAGE_KEYS.SHELVES);
     if (shelves.length === 0) {
       shelves = ['货架1', '货架2', '货架3', '货架4', '货架5'];
       this.set(STORAGE_KEYS.SHELVES, shelves);
     }
-    
-    // 5. 初始化默认分类列表
     let categories = this.get(STORAGE_KEYS.CATEGORIES);
     if (categories.length === 0) {
       categories = [
@@ -125,9 +118,9 @@ export const Storage = {
       shelves,
       products,
       shelfProducts,
-      shelfBatches: this.get(STORAGE_KEYS.SHELF_BATCHES),
+      shelfBatches,
       pendingNew: [],
-      expireThreshold: this.getExpireThreshold(),
+      expireThreshold,
       categories
     };
   },

@@ -10,11 +10,7 @@ Vue.use(Vuex)
 const initData = Storage.init();
 const state = {
   shelves: initData.shelves, // 货架列表
-  products: initData.products.length > 0 ? initData.products : [  // 测试商品（无数据时用）
-    { id: 'p1', name: '方便面', category: '食品' },
-    { id: 'p2', name: '矿泉水', category: '饮品' },
-    { id: 'p3', name: '卫生纸', category: '日用品' }
-  ],
+  products: initData.products,
   shelfProducts: initData.shelfProducts, // 货架-商品关联
   shelfBatches: initData.shelfBatches,   // 批次列表
   expireThreshold: initData.expireThreshold, // 临期阈值
@@ -24,12 +20,16 @@ const state = {
 
 // ========== 同步变更（仅更新状态 + 调用Storage持久化） ==========
 const mutations = {
+  // 添加商品到列表
+  ADD_PRODUCT(state,data){
+    state.products = [...state.products, data];
+    Storage.set(STORAGE_KEYS.PRODUCTS,state.products)
+  },
   // 更新货架列表
   UPDATE_SHELVES(state, data) {
     state.shelves = data;
     Storage.set(STORAGE_KEYS.SHELVES, data);
   },
-
   // 更新商品列表
   UPDATE_PRODUCTS(state, data) {
     state.products = data;
@@ -72,7 +72,7 @@ const mutations = {
     state.products = [];
     state.shelfProducts = [];
     state.shelfBatches = [];
-    state.expireThreshold = 3;
+    state.expireThreshold = 7;
     state.categories = [];
     state.pendingNew = [];
 
@@ -86,41 +86,6 @@ const mutations = {
     Object.assign(state, newInitData);
   }
 }
-
-// ========== 异步操作（可扩展接口请求） ==========
-const actions = {
-  // 异步添加货架
-  async addShelfAsync({ commit }, shelfName) {
-    try {
-      await new Promise(resolve => setTimeout(resolve, 500)); // 模拟接口延迟
-      const newShelves = [...new Set([...state.shelves, shelfName])]; // 去重
-      commit('UPDATE_SHELVES', newShelves);
-      return true;
-    } catch (e) {
-      console.error('添加货架失败:', e);
-      return false;
-    }
-  },
-
-  // 异步添加商品
-  async addProductAsync({ commit }, product) {
-    try {
-      await new Promise(resolve => setTimeout(resolve, 300));
-      // 优化：统一ID生成规则，避免重复
-      const newProduct = {
-        id: product.id || `prod_${Date.now()}_${Math.floor(Math.random() * 1000)}`, // 加随机数防重复
-        ...product
-      };
-      const newProducts = [...state.products, newProduct];
-      commit('UPDATE_PRODUCTS', newProducts);
-      return newProduct;
-    } catch (e) {
-      console.error('添加商品失败:', e);
-      return null;
-    }
-  }
-}
-
 // ========== 计算属性（简化组件数据获取） ==========
 const getters = {
   // 获取临期阈值
@@ -184,6 +149,5 @@ const getters = {
 export default new Vuex.Store({
   state,
   mutations,
-  actions,
   getters,
 })
