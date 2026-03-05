@@ -35,29 +35,30 @@
           v-for="product in filteredProducts"
           :key="product.id"
         >
-          <div class="product-info">
-            <div class="product-basic-info">
+          <el-row type="flex" justify="space-between">
+            <el-col :span="10">
               <strong>[{{ product.category }}] {{ product.name }}</strong>
-              <div style="font-size: 14px; color: #666; margin-top: 4px">
+              <div style="font-size: 12px; color: #666; margin-top: 4px">
                 标准保质期：{{ product.period }}{{ product.unit }}
               </div>
-            </div>
-            <div class="product-actions">
+            </el-col>
+            <el-col :span="1">
               <el-button
                 type="warning"
                 size="mini"
                 @click="openEditModal(product)"
-                >修改商品</el-button
+                >修改</el-button
               >
+            </el-col>
+            <el-col :span="6">
               <el-button
                 type="danger"
                 size="mini"
                 @click="openDeleteModal(product)"
                 style="margin-left: 8px"
-                >删除商品</el-button
-              >
-            </div>
-          </div>
+                >删除</el-button
+              ></el-col>
+          </el-row>
         </div>
       </div>
     </div>
@@ -451,12 +452,6 @@ export default {
   background: #fafafa;
   transition: all 0.2s ease;
 }
-
-.product-batch-item:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  border-color: #dcdcdc;
-}
-
 .product-info {
   display: flex;
   justify-content: space-between;
