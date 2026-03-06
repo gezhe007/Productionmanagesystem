@@ -12,7 +12,7 @@ const state = {
   shelves: initData.shelves, // 货架列表
   products: initData.products,
   shelfProducts: initData.shelfProducts, // 货架-商品关联
-  shelfBatches: initData.shelfBatches,   // 批次列表
+  shelfProductBatches: initData.shelfProductBatches,   // 批次列表
   expireThreshold: initData.expireThreshold, // 临期阈值
   categories: initData.categories, // 商品分类
   pendingNew: initData.pendingNew // 待新增数据临时存储
@@ -44,7 +44,7 @@ const mutations = {
 
   // 更新批次列表
   UPDATE_SHELF_BATCHES(state, data) {
-    state.shelfBatches = data;
+    state.shelfProductBatches = data;
     Storage.set(STORAGE_KEYS.SHELF_BATCHES, data);
   },
 
@@ -71,7 +71,7 @@ const mutations = {
     state.shelves = [];
     state.products = [];
     state.shelfProducts = [];
-    state.shelfBatches = [];
+    state.shelfProductBatches = [];
     state.expireThreshold = 7;
     state.categories = [];
     state.pendingNew = [];
@@ -115,7 +115,7 @@ const getters = {
   },
   // 获取所有临期/过期批次（警告用）
   getWarnBatches: (state) => {
-    return state.shelfBatches.map(batch => {
+    return state.shelfProductBatches.map(batch => {
       // 计算剩余天数
       const expireDate = new Date(batch.expire);
       const now = new Date();
@@ -145,6 +145,12 @@ const getters = {
     return state.products.find(p => p.id === productId) || {};
   },
   getCategoryById: (state) => (categoryId) => {
+    return state.categories.find(cat => cat.id === categoryId) || {};
+  },
+  getShelfById: (state) => (shelfId) => {
+    return state.categories.find(cat => cat.id === categoryId) || {};
+  },
+  getShelfProductById: (state) => (shelfProductId) => {
     return state.categories.find(cat => cat.id === categoryId) || {};
   },
 }

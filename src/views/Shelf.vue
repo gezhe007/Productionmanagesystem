@@ -459,7 +459,7 @@ export default {
       "shelves",
       "products",
       "shelfProducts",
-      "shelfBatches",
+      "shelfProductBatches",
       "expireThreshold",
     ]),
     // 从Vuex映射计算属性
@@ -524,7 +524,7 @@ export default {
       // 入参校验
       if (!shelf || !productId) return [];
 
-      return this.shelfBatches
+      return this.shelfProductBatches
         .filter((b) => b.shelf === shelf && b.productId === productId)
         .sort((a, b) => new Date(a.expire) - new Date(b.expire));
     },
@@ -535,7 +535,7 @@ export default {
       if (!shelf || !productId) return 0;
 
       // 复用calculateAfterReplenishQty，补货数量传0即可
-      return calculateAfterReplenishQty(shelf, productId, 0, this.shelfBatches);
+      return calculateAfterReplenishQty(shelf, productId, 0, this.shelfProductBatches);
     },
 
     // ========== 1. 新增货架 ==========
@@ -612,10 +612,10 @@ export default {
         this.UPDATE_SHELF_PRODUCTS(newShelfProducts);
 
         // 3. 更新批次关联
-        const newShelfBatches = this.shelfBatches.map((b) =>
+        const newShelfProductBatches = this.shelfProductBatches.map((b) =>
           b.shelf === this.editShelfOldName ? { ...b, shelf: newName } : b
         );
-        this.UPDATE_SHELF_BATCHES(newShelfBatches);
+        this.UPDATE_SHELF_BATCHES(newShelfProductBatches);
 
         this.editShelfModalVisible = false;
         this.$message.success("货架名称修改成功");
@@ -714,7 +714,7 @@ export default {
         console.log("全局商品列表：", this.products);
 
         // 检查批次是否已存在
-        const isBatchExist = this.shelfBatches.some(
+        const isBatchExist = this.shelfProductBatches.some(
           (b) =>
             b.shelf === shelf &&
             b.productId === productId &&
@@ -775,8 +775,8 @@ export default {
         }
 
         // 添加批次记录
-        const newShelfBatches = [
-          ...this.shelfBatches,
+        const newShelfProductBatches = [
+          ...this.shelfProductBatches,
           {
             shelf,
             productId,
@@ -788,7 +788,7 @@ export default {
             productName: product.name,
           },
         ];
-        this.UPDATE_SHELF_BATCHES(newShelfBatches);
+        this.UPDATE_SHELF_BATCHES(newshelfProductBatches);
 
         this.addBatchModalVisible = false;
         this.$message.success(`生产日期【${produceDate}】的批次添加成功`);
@@ -841,7 +841,7 @@ export default {
         return;
       }
 
-      const newBatches = this.shelfBatches.map((b) =>
+      const newBatches = this.shelfProductBatches.map((b) =>
         b.shelf === shelf && b.productId === productId && b.batch === batch
           ? { ...b, qty }
           : b
@@ -861,7 +861,7 @@ export default {
       this.$confirm(`确定删除生产日期【${batch}】的批次？`, "提示", {
         type: "warning",
       }).then(() => {
-        const newBatches = this.shelfBatches.filter(
+        const newBatches = this.shelfProductBatches.filter(
           (b) =>
             !(
               b.shelf === shelf &&
@@ -886,7 +886,7 @@ export default {
       const shelfProductCount = this.shelfProducts.filter(
         (sp) => sp.shelf === shelfName
       ).length;
-      const shelfBatchCount = this.shelfBatches.filter(
+      const shelfBatchCount = this.shelfProductBatches.filter(
         (b) => b.shelf === shelfName
       ).length;
 
@@ -902,13 +902,13 @@ export default {
         const newShelfProducts = this.shelfProducts.filter(
           (sp) => sp.shelf !== shelfName
         );
-        const newShelfBatches = this.shelfBatches.filter(
+        const newshelfProductBatches = this.shelfProductBatches.filter(
           (b) => b.shelf !== shelfName
         );
 
         this.UPDATE_SHELVES(newShelves);
         this.UPDATE_SHELF_PRODUCTS(newShelfProducts);
-        this.UPDATE_SHELF_BATCHES(newShelfBatches);
+        this.UPDATE_SHELF_BATCHES(newshelfProductBatches);
 
         this.$message.success("货架删除成功");
       });
@@ -934,12 +934,12 @@ export default {
         const newShelfProducts = this.shelfProducts.filter(
           (sp) => !(sp.shelf === shelf && sp.productId === productId)
         );
-        const newShelfBatches = this.shelfBatches.filter(
+        const newshelfProductBatches = this.shelfProductBatches.filter(
           (b) => !(b.shelf === shelf && b.productId === productId)
         );
 
         this.UPDATE_SHELF_PRODUCTS(newShelfProducts);
-        this.UPDATE_SHELF_BATCHES(newShelfBatches);
+        this.UPDATE_SHELF_BATCHES(newshelfProductBatches);
 
         this.$message.success(`商品【${productName}】已从货架【${shelf}】删除`);
       });

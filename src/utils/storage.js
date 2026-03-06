@@ -4,7 +4,7 @@
 export const STORAGE_KEYS = {
   PRODUCTS: 'products',
   SHELF_PRODUCTS: 'shelfProducts',
-  SHELF_BATCHES: 'shelfBatches',
+  SHELF_PRODUCTS_BATCHES: 'shelfProductBatches',
   SHELVES: 'shelves',
   EXPIRE_THRESHOLD: 'expireWarningThreshold',
   CATEGORIES: 'categories'
@@ -86,14 +86,14 @@ export const Storage = {
       ];
       this.set(STORAGE_KEYS.PRODUCTS, products);
     }
-    let shelfBatches = this.get(STORAGE_KEYS.SHELF_BATCHES)
-    if (shelfBatches.length === 0) {
-      shelfBatches = [
+    let shelfProductBatches = this.get(STORAGE_KEYS.SHELF_BATCHES)
+    if (shelfProductBatches.length === 0) {
+      shelfProductBatches = [
         { id: 1, shelfProductId: 1, produceDate: '2026-1-1', batchnum: 5 },
         { id: 2, shelfProductId: 2, produceDate: '2026-1-1', batchnum: 5 },
         { id: 3, shelfProductId: 3, produceDate: '2026-1-1', batchnum: 5 },
       ]
-      this.set(STORAGE_KEYS.SHELF_BATCHES, shelfBatches);
+      this.set(STORAGE_KEYS.SHELF_BATCHES, shelfProductBatches);
     }
     let shelfProducts = this.get(STORAGE_KEYS.SHELF_PRODUCTS);
     if (shelfProducts.length === 0) {
@@ -177,7 +177,7 @@ export const Storage = {
       shelves,
       products,
       shelfProducts,
-      shelfBatches,
+      shelfProductBatches,
       pendingNew: [],
       expireThreshold,
       categories

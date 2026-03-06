@@ -243,7 +243,7 @@ export default {
     ...mapState([
       "products",
       "categories",
-      "shelfBatches",
+      "shelfProductBatches",
       "shelfProducts",
       "expireThreshold",
     ]),
@@ -389,7 +389,7 @@ export default {
           return product;
         });
 
-        const newShelfBatches = this.shelfBatches.map((batch) => {
+        const newShelfProductBatches = this.shelfProductBatches.map((batch) => {
           if (batch.shelfProductId === productId && batch.produceDate) {
             const expireDateStr = calculateExpireDate(
               batch.produceDate,
@@ -419,7 +419,7 @@ export default {
         });
 
         this.UPDATE_PRODUCTS(newProducts);
-        this.UPDATE_SHELF_BATCHES(newShelfBatches);
+        this.UPDATE_SHELF_BATCHES(newShelfProductBatches);
         this.UPDATE_SHELF_PRODUCTS(newShelfProducts);
 
         this.$message.success("商品修改成功，已同步更新所有关联批次信息");
@@ -436,12 +436,12 @@ export default {
       const newShelfProducts = this.shelfProducts.filter(
         (sp) => sp.productId !== productId
       );
-      const newShelfBatches = this.shelfBatches.filter(
+      const newShelfProductBatches = this.shelfProductBatches.filter(
         (b) => b.productId !== productId
       );
       this.UPDATE_PRODUCTS(newProducts);
       this.UPDATE_SHELF_PRODUCTS(newShelfProducts);
-      this.UPDATE_SHELF_BATCHES(newShelfBatches);
+      this.UPDATE_SHELF_BATCHES(newShelfProductBatches);
       this.$message.success(`商品【${this.product.name}】已成功删除`);
       this.deleteModalVisible = false;
     },
