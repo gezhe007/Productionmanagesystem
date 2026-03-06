@@ -80,7 +80,7 @@ export const Storage = {
     let products = this.get(STORAGE_KEYS.PRODUCTS);
     if (products.length === 0) {
       products = [  // 测试商品（无数据时用）
-        { id: 1, name: '泡面', categoryId: 33, period: 1, unit: '天' },
+        { id: 1, name: '牛奶', categoryId: 1, period: 1, unit: '天' },
         { id: 2, name: '矿泉水', categoryId: 4, period: 1, unit: '天' },
         { id: 3, name: '卫生纸', categoryId: 13, period: 1, unit: '天' }
       ];

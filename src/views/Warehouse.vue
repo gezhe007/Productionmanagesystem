@@ -14,7 +14,11 @@
           >筛选分类：</span
         >
         <!-- 修复1：筛选下拉框绑定分类ID（数字），而非整个对象 -->
-        <el-select v-model="filterCatId" placeholder="全部" style="width: 200px">
+        <el-select
+          v-model="filterCatId"
+          placeholder="全部"
+          style="width: 200px"
+        >
           <el-option label="全部" :value="0"></el-option>
           <el-option
             v-for="category in categories"
@@ -38,7 +42,10 @@
         >
           <el-row type="flex" justify="space-between">
             <el-col :span="10">
-              <strong>[{{ getCategoryById(product.categoryId).name}}] {{ product.name }}</strong>
+              <strong
+                >[{{ getCategoryById(product.categoryId).name }}]
+                {{ product.name }}</strong
+              >
               <div style="font-size: 12px; color: #666; margin-top: 4px">
                 标准保质期：{{ product.period }}{{ product.unit }}
               </div>
@@ -58,7 +65,8 @@
                 @click="openDeleteModal(product)"
                 style="margin-left: 8px"
                 >删除</el-button
-              ></el-col>
+              ></el-col
+            >
           </el-row>
         </div>
       </div>
@@ -83,7 +91,6 @@
           ></el-input>
         </el-form-item>
         <el-form-item label="分类" prop="categoryId">
-          <!-- 修复2：弹窗下拉框绑定分类ID（数字），而非对象 -->
           <el-select v-model="product.categoryId" placeholder="请选择分类">
             <el-option
               v-for="category in categories"
@@ -225,7 +232,12 @@ export default {
         // 修复2：验证规则改为categoryId
         categoryId: [
           { required: true, message: "请选择分类", trigger: "change" },
-          { type: "number", min: 1, message: "请选择有效分类", trigger: "change" }
+          {
+            type: "number",
+            min: 1,
+            message: "请选择有效分类",
+            trigger: "change",
+          },
         ],
         period: [
           { required: true, message: "请输入保质期数值", trigger: "blur" },
@@ -247,7 +259,12 @@ export default {
       "shelfProducts",
       "expireThreshold",
     ]),
-    ...mapGetters(["getProductById","getCategoryById"]),
+    ...mapGetters([
+      "getProductById",
+      "getCategoryById",
+      "getShelfById",
+      "getShelfProductById",
+    ]),
     filteredProducts() {
       // 修复1：筛选逻辑改为基于categoryId
       if (this.filterCatId === 0) return this.products;
@@ -278,7 +295,7 @@ export default {
         this.product = {
           id: "",
           name: "",
-          categoryId: 0,
+          categoryId: null,
           period: "",
           unit: "天",
         };
@@ -309,9 +326,10 @@ export default {
           return;
         }
 
-        const newProductId = this.products.length > 0 
-          ? this.products[this.products.length - 1].id + 1 
-          : 1;
+        const newProductId =
+          this.products.length > 0
+            ? this.products[this.products.length - 1].id + 1
+            : 1;
 
         // 修复2：组装商品数据时，把categoryId转为分类对象
         const newProduct = {
@@ -390,7 +408,10 @@ export default {
         });
 
         const newShelfProductBatches = this.shelfProductBatches.map((batch) => {
-          if (batch.shelfProductId === productId && batch.produceDate) {
+          if (
+            this.getShelfProductById(batch.shelfProductId).productId === productId &&
+            batch.produceDate
+          ) {
             const expireDateStr = calculateExpireDate(
               batch.produceDate,
               this.product.period,
@@ -398,29 +419,14 @@ export default {
             );
             return {
               ...batch,
-              expire: expireDateStr,
-              productName: this.product.name.trim(),
+              expire: expireDateStr
             };
           }
           return batch;
         });
 
-        const newShelfProducts = this.shelfProducts.map((sp) => {
-          if (sp.productId === productId) {
-            return {
-              ...sp,
-              name: this.product.name.trim(),
-              category: newProduct.category,
-              shelfLife: this.product.period,
-              shelfLifeUnit: this.product.unit,
-            };
-          }
-          return sp;
-        });
-
         this.UPDATE_PRODUCTS(newProducts);
         this.UPDATE_SHELF_BATCHES(newShelfProductBatches);
-        this.UPDATE_SHELF_PRODUCTS(newShelfProducts);
 
         this.$message.success("商品修改成功，已同步更新所有关联批次信息");
         this.editModalVisible = false;
@@ -428,6 +434,7 @@ export default {
     },
     openDeleteModal(product) {
       this.product = { ...product };
+      console.log(product)
       this.deleteModalVisible = true;
     },
     confirmDelete() {

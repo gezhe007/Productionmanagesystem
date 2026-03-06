@@ -106,7 +106,7 @@
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="deleteModalVisible = false">取消</el-button>
-          <el-button type="primary" @click="confirmDelete">确定</el-button>
+          <el-button type="primary" @click="confirmDelete(category)">确定</el-button>
         </div>
       </template>
     </el-dialog>
@@ -233,16 +233,9 @@ export default {
           }
           return category;
         });
-        const newProducts = this.products.map((product) => {
-          if (product.category.id === newCategory.id) {
-            return { ...product, category: newCategory };
-          }
-          return product;
-        });
 
         // 3. 调用Vuex mutation更新全局状态（自动同步到本地存储）
         this.UPDATE_CATEGORIES(newCategories);
-        this.UPDATE_PRODUCTS(newProducts);
 
         this.$message.success(`分类【${newCategory.name}】修改成功`);
         this.editModalVisible = false;
@@ -255,7 +248,7 @@ export default {
     // 删除分类
     confirmDelete(category) {
       const hasProductUse = this.products.some(
-        (p) => p.category.id === category.id
+        (p) => p.categoryId === category.id
       );
       if (hasProductUse) {
         this.$message.error("该分类仍有商品使用，无法删除");

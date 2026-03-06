@@ -10,7 +10,7 @@
     </el-row>
 
     <!-- 货架列表 -->
-    <div v-for="(shelf, index) in shelves" :key="shelf" class="shelf-item">
+    <div v-for="shelf in shelves" :key="shelf" class="shelf-item">
       <el-card shadow="formed" style="border: 1px solid #000">
         <template #header>
           <div>
@@ -23,7 +23,7 @@
                 margin: 0 0 10px 0;
               "
             >
-              <strong>{{ shelf }}</strong>
+              <strong>{{ shelf.name }}</strong>
             </el-row>
             <el-row
               style="
@@ -37,10 +37,10 @@
               >
               <el-button
                 type="warning"
-                @click="openEditShelfModal(index, shelf)"
+                @click="openEditShelfModal(shelf)"
                 >修改名称</el-button
               >
-              <el-button type="danger" @click="deleteShelf(index, shelf)"
+              <el-button type="danger" @click="deleteShelf(shelf)"
                 >删除货架</el-button
               >
             </el-row>
@@ -535,7 +535,12 @@ export default {
       if (!shelf || !productId) return 0;
 
       // 复用calculateAfterReplenishQty，补货数量传0即可
-      return calculateAfterReplenishQty(shelf, productId, 0, this.shelfProductBatches);
+      return calculateAfterReplenishQty(
+        shelf,
+        productId,
+        0,
+        this.shelfProductBatches
+      );
     },
 
     // ========== 1. 新增货架 ==========

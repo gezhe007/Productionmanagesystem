@@ -148,10 +148,10 @@ const getters = {
     return state.categories.find(cat => cat.id === categoryId) || {};
   },
   getShelfById: (state) => (shelfId) => {
-    return state.categories.find(cat => cat.id === categoryId) || {};
+    return state.shelves.find(shelf => shelf.id === shelfId) || {};
   },
   getShelfProductById: (state) => (shelfProductId) => {
-    return state.categories.find(cat => cat.id === categoryId) || {};
+    return state.shelfProducts.find(shelfProduct => shelfProduct.id === shelfProductId) || {};
   },
 }
 
