@@ -45,7 +45,7 @@ const mutations = {
   // 更新批次列表
   UPDATE_SHELF_PRODUCT_BATCHES(state, data) {
     state.shelfProductBatches = data;
-    Storage.set(STORAGE_KEYS.SHELF_BATCHES, data);
+    Storage.set(STORAGE_KEYS.SHELF_PRODUCT_BATCHES, data);
   },
 
   // 更新分类列表
@@ -95,18 +95,20 @@ const getters = {
   getAllCategories: (state) => state.categories,
 
   // 获取指定货架的商品列表（优化版）
-  getProductsInShelf: (state) => (shelfId) => {
-    const data = state.shelfProducts
+  getProductsInShelf: (state, getter) => (shelfId) => {
+    return state.shelfProducts
       .filter(sp => sp.shelfId === shelfId)
       .map(sp => {
         const product = state.products.find(p => p.id === sp.productId) || {};
         return {
           ...sp, // 货架关联信息
-          ...product // 商品基础信息
+          productName: product.name,
+          categoryName: getter.getCategoryById(product.categoryId).name,
+          shelfName: getter.getShelfById(sp.shelfId).name,
+          period: product.period,
+          unit: product.unit
         };
       });
-      console.log(data)
-    return data
   },
   getBatchStatus: (state) => (expireDateStr) => {
     if (!expireDateStr) {
@@ -131,18 +133,10 @@ const getters = {
       return { cls: 'success', text: '正常' };
     }
   },
-  getProductMaxQtyInShelf: (state) => (shelfId, productId) => {
-    const shelfProduct = state.shelfProducts.find(
-      sp => sp.shelfId === shelfId && sp.productId === productId
-    );
-    return shelfProduct ? shelfProduct.max : 0;
-  },
   // 获取商品批次（按过期日期排序）
-  getProductBatches: (state, getters) => (shelfId, productId) => {
+  getProductBatches: (state) => (shelfProductId) => {
     return state.shelfProductBatches
-      .filter((b) =>
-        getters.getShelfProductById(b.shelfProductId).shelfId === shelfId &&
-        getters.getShelfProductById(b.shelfProductId).productId === productId)
+      .filter((b) => b.shelfProductId === shelfProductId)
       .sort((a, b) => new Date(a.expireDate) - new Date(b.expireDate));
   },
   // 获取所有临期/过期批次（警告用）
@@ -189,14 +183,31 @@ const getters = {
     return state.shelfProductBatches.find(shelfProductBatch => shelfProductBatch.id === shelfProductBatchId) || {}
   },
   // 计算商品现有数量
-  getProductCurrentQty: (state, getter) => (shelfId, productId) => {
-    if (!shelfId || !productId) return 0;
-    const currentQty = state.shelfProductBatches
-      .filter(b => getter.getShelfProductById(b.shelfProductId).shelfId === shelfId &&
-        getter.getShelfProductById(b.shelfProductId).productId === productId)
+  getProductCurrentQty: (state) => (shelfProduct) => {
+    return state.shelfProductBatches
+      .filter(b => b.shelfProductId === shelfProduct.id)
       .reduce((sum, b) => sum + (b.batchnum || 0), 0);
+  },
+  getBatchMaxQty: (state, getter) => (batch, shelfProduct) => {
+    const allBatches = getter.getProductBatches(shelfProduct.id);
+    if (!allBatches || allBatches.length === 0) {
+      return shelfProduct.max || 0;
+    }
 
-    return currentQty
+    const otherBatchesTotal = allBatches.reduce((total, b) => {
+      if (b.id !== batch.id) {
+        total += b.batchnum || 0;
+      }
+      return total;
+    }, 0);
+
+    const maxAvailable = shelfProduct.max - otherBatchesTotal;
+    return Math.max(maxAvailable, 0);
+  },
+  getAddBatchMaxQty: (state,getter) => (shelfProduct) => {
+    const allBatches = getter.getProductBatches(shelfProduct.id) || [];
+    const usedQty = allBatches.reduce((total, b) => total + (b.batchnum || 0), 0);
+    return Math.max(shelfProduct.max - usedQty, 1); // 最小为1
   },
 }
 
