@@ -13,7 +13,6 @@ export function calculateExpireDate(produceDate, period, unit) {
   }
 
   const produceDateObj = new Date(produceDate);
-  // 校验日期有效性
   if (isNaN(produceDateObj.getTime())) {
     console.warn('计算过期日期失败：生产日期格式错误', produceDate);
     return '';
@@ -34,36 +33,6 @@ export function calculateExpireDate(produceDate, period, unit) {
 
   return expireDateObj.toISOString().split('T')[0];
 }
-/**
- * 生成商品ID
- * @param {string} productName 商品名
- * @returns {id} 商品ID
- */
-export function generateId(productName){
-  const id=`${productName}_${new Date().toISOString().split('T')[0]}`
-  return id
-}
-/**
- * 获取指定货架上的商品列表（关联商品详情）
- * @param {string} shelf 货架名称
- * @param {array} shelfProducts 货架-商品关联列表
- * @param {array} products 商品主列表
- * @returns {array} 包含商品详情和货架最大容量的列表
- */
-export function getProductsInShelf(shelf, shelfProducts, products) {
-  // 入参校验
-  if (!shelf || !Array.isArray(shelfProducts) || !Array.isArray(products)) {
-    return [];
-  }
-
-  return shelfProducts
-    .filter(sp => sp.shelf === shelf)
-    .map(sp => {
-      const product = products.find(p => p.id === sp.productId);
-      return product ? { ...product, shelfMax: sp.shelfMax || sp.max || 10 } : null;
-    })
-    .filter(p => p); // 过滤掉null值
-}
 
 /**
  * 计算补货后的库存总量
@@ -73,14 +42,14 @@ export function getProductsInShelf(shelf, shelfProducts, products) {
  * @param {array} shelfBatches 批次列表
  * @returns {number} 补货后的总库存
  */
-export function calculateAfterReplenishQty(shelf, productId, addQty, shelfBatches) {
+export function calculateAfterReplenishQty(shelfId, productId, addQty, shelfBatches) {
   // 入参校验
-  if (!shelf || !productId || !Array.isArray(shelfBatches)) {
+  if (!shelfId || !productId || !Array.isArray(shelfBatches)) {
     return 0;
   }
 
   const currentQty = shelfBatches
-    .filter(b => b.shelf === shelf && b.productId === productId)
+    .filter(b => b.shelfId === shelf && b.productId === productId)
     .reduce((sum, b) => sum + (b.qty || 0), 0);
 
   return currentQty + Number(addQty || 0);
@@ -114,38 +83,6 @@ export function validateForm(fields) {
 
   return { valid: true, message: '' };
 }
-
-/**
- * 获取批次状态（正常/临期/已过期）
- * @param {string} expireDateStr 过期日期字符串（YYYY-MM-DD）
- * @param {number} threshold 临期阈值（天，默认30）
- * @returns {object} 状态对象 { cls: 'success/warning/danger', text: '状态文本' }
- */
-export function getBatchStatus(expireDateStr, threshold = 30) {
-  // 入参校验
-  if (!expireDateStr) {
-    return { cls: 'danger', text: '日期无效' };
-  }
-
-  const expireDate = new Date(expireDateStr);
-  // 日期格式校验
-  if (isNaN(expireDate.getTime())) {
-    return { cls: 'danger', text: '日期格式错误' };
-  }
-
-  const now = new Date();
-  const diffTime = expireDate - now;
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-  if (diffDays < 0) {
-    return { cls: 'danger', text: '已过期' };
-  } else if (diffDays <= threshold) {
-    return { cls: 'warning', text: `临期(${diffDays}天)` };
-  } else {
-    return { cls: 'success', text: '正常' };
-  }
-}
-
 /**
  * 计算补货数量（最大容量 - 当前库存）
  * @param {string} shelf 货架名称
@@ -172,4 +109,9 @@ export function calculateReplenishQty(shelf, productId, shelfProducts, shelfBatc
 
   // 补货数量 = 最大容量 - 当前库存（最小为0）
   return Math.max(0, maxQty - totalQty);
+}
+export function calculateId(datas) {
+  return datas.length > 0
+    ? datas[datas.length - 1].id + 1
+    : 1;
 }

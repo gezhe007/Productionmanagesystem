@@ -43,7 +43,7 @@ const mutations = {
   },
 
   // 更新批次列表
-  UPDATE_SHELF_BATCHES(state, data) {
+  UPDATE_SHELF_PRODUCT_BATCHES(state, data) {
     state.shelfProductBatches = data;
     Storage.set(STORAGE_KEYS.SHELF_BATCHES, data);
   },
@@ -95,29 +95,61 @@ const getters = {
   getAllCategories: (state) => state.categories,
 
   // 获取指定货架的商品列表（优化版）
-  getProductsInShelf: (state) => (shelfName) => {
-    return state.shelfProducts
-      .filter(sp => sp.shelf === shelfName)
+  getProductsInShelf: (state) => (shelfId) => {
+    const data = state.shelfProducts
+      .filter(sp => sp.shelfId === shelfId)
       .map(sp => {
-        // 关联商品完整信息，保证ID和字段匹配
         const product = state.products.find(p => p.id === sp.productId) || {};
         return {
-          ...sp, // 货架关联信息（shelfMax等）
-          ...product // 商品基础信息（id/name/category/period/shelfLife等）
+          ...sp, // 货架关联信息
+          ...product // 商品基础信息
         };
       });
+      console.log(data)
+    return data
   },
-  getProductMaxQtyInShelf: (state) => (shelfName, productId) => {
+  getBatchStatus: (state) => (expireDateStr) => {
+    if (!expireDateStr) {
+      return { cls: 'danger', text: '日期无效' };
+    }
+
+    const expireDate = new Date(expireDateStr);
+    // 日期格式校验
+    if (isNaN(expireDate.getTime())) {
+      return { cls: 'danger', text: '日期格式错误' };
+    }
+
+    const now = new Date();
+    const diffTime = expireDate - now;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) {
+      return { cls: 'danger', text: '已过期' };
+    } else if (diffDays <= state.expireThreshold) {
+      return { cls: 'warning', text: `临期(${diffDays}天)` };
+    } else {
+      return { cls: 'success', text: '正常' };
+    }
+  },
+  getProductMaxQtyInShelf: (state) => (shelfId, productId) => {
     const shelfProduct = state.shelfProducts.find(
-      sp => sp.shelf === shelfName && sp.productId === productId
+      sp => sp.shelfId === shelfId && sp.productId === productId
     );
-    return shelfProduct ? shelfProduct.shelfMax : 0;
+    return shelfProduct ? shelfProduct.max : 0;
+  },
+  // 获取商品批次（按过期日期排序）
+  getProductBatches: (state, getters) => (shelfId, productId) => {
+    return state.shelfProductBatches
+      .filter((b) =>
+        getters.getShelfProductById(b.shelfProductId).shelfId === shelfId &&
+        getters.getShelfProductById(b.shelfProductId).productId === productId)
+      .sort((a, b) => new Date(a.expireDate) - new Date(b.expireDate));
   },
   // 获取所有临期/过期批次（警告用）
   getWarnBatches: (state) => {
     return state.shelfProductBatches.map(batch => {
       // 计算剩余天数
-      const expireDate = new Date(batch.expire);
+      const expireDate = new Date(batch.expireDate);
       const now = new Date();
       const diffDays = Math.ceil((expireDate - now) / (1000 * 60 * 60 * 24));
 
@@ -152,6 +184,19 @@ const getters = {
   },
   getShelfProductById: (state) => (shelfProductId) => {
     return state.shelfProducts.find(shelfProduct => shelfProduct.id === shelfProductId) || {};
+  },
+  getShelfProductBatchById: (state) => (shelfProductBatchId) => {
+    return state.shelfProductBatches.find(shelfProductBatch => shelfProductBatch.id === shelfProductBatchId) || {}
+  },
+  // 计算商品现有数量
+  getProductCurrentQty: (state, getter) => (shelfId, productId) => {
+    if (!shelfId || !productId) return 0;
+    const currentQty = state.shelfProductBatches
+      .filter(b => getter.getShelfProductById(b.shelfProductId).shelfId === shelfId &&
+        getter.getShelfProductById(b.shelfProductId).productId === productId)
+      .reduce((sum, b) => sum + (b.batchnum || 0), 0);
+
+    return currentQty
   },
 }
 

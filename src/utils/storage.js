@@ -81,19 +81,19 @@ export const Storage = {
     if (products.length === 0) {
       products = [  // 测试商品（无数据时用）
         { id: 1, name: '牛奶', categoryId: 1, period: 1, unit: '天' },
-        { id: 2, name: '矿泉水', categoryId: 4, period: 1, unit: '天' },
-        { id: 3, name: '卫生纸', categoryId: 13, period: 1, unit: '天' }
+        { id: 2, name: '矿泉水', categoryId: 4, period: 2, unit: '天' },
+        { id: 3, name: '卫生纸', categoryId: 13, period: 3, unit: '天' }
       ];
       this.set(STORAGE_KEYS.PRODUCTS, products);
     }
-    let shelfProductBatches = this.get(STORAGE_KEYS.SHELF_BATCHES)
+    let shelfProductBatches = this.get(STORAGE_KEYS.SHELF_PRODUCTS_BATCHES)
     if (shelfProductBatches.length === 0) {
       shelfProductBatches = [
-        { id: 1, shelfProductId: 1, produceDate: '2026-1-1', batchnum: 5 },
-        { id: 2, shelfProductId: 2, produceDate: '2026-1-1', batchnum: 5 },
-        { id: 3, shelfProductId: 3, produceDate: '2026-1-1', batchnum: 5 },
+        { id: 1, shelfProductId: 1, produceDate: '2026-03-06', expireDate: '2026-03-07', batchnum: 5 },
+        { id: 2, shelfProductId: 2, produceDate: '2026-03-06', expireDate: '2026-03-08', batchnum: 4 },
+        { id: 3, shelfProductId: 3, produceDate: '2026-03-06', expireDate: '2026-03-07', batchnum: 3 },
       ]
-      this.set(STORAGE_KEYS.SHELF_BATCHES, shelfProductBatches);
+      this.set(STORAGE_KEYS.SHELF_PRODUCTS_BATCHES, shelfProductBatches);
     }
     let shelfProducts = this.get(STORAGE_KEYS.SHELF_PRODUCTS);
     if (shelfProducts.length === 0) {

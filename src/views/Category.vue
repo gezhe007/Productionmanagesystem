@@ -179,10 +179,7 @@ export default {
           this.$message.error("该分类已存在");
           return;
         }
-        const newCategoryId =
-          this.categories.length > 0
-            ? this.categories[this.categories.length - 1].id + 1
-            : 1;
+        const newCategoryId =calculateId(this.categories)
 
         const newCategory = {
           id: newCategoryId,

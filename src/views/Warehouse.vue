@@ -200,7 +200,11 @@
 
 <script>
 import { mapMutations, mapState, mapGetters } from "vuex";
-import { generateId, calculateExpireDate, validateForm } from "@/utils/helpers";
+import {
+  calculateId,
+  calculateExpireDate,
+  validateForm,
+} from "@/utils/helpers";
 
 export default {
   name: "Warehouse",
@@ -326,10 +330,7 @@ export default {
           return;
         }
 
-        const newProductId =
-          this.products.length > 0
-            ? this.products[this.products.length - 1].id + 1
-            : 1;
+        const newProductId = calculateId(this.products);
 
         // 修复2：组装商品数据时，把categoryId转为分类对象
         const newProduct = {
@@ -409,7 +410,8 @@ export default {
 
         const newShelfProductBatches = this.shelfProductBatches.map((batch) => {
           if (
-            this.getShelfProductById(batch.shelfProductId).productId === productId &&
+            this.getShelfProductById(batch.shelfProductId).productId ===
+              productId &&
             batch.produceDate
           ) {
             const expireDateStr = calculateExpireDate(
@@ -419,7 +421,7 @@ export default {
             );
             return {
               ...batch,
-              expire: expireDateStr
+              expire: expireDateStr,
             };
           }
           return batch;
@@ -434,7 +436,7 @@ export default {
     },
     openDeleteModal(product) {
       this.product = { ...product };
-      console.log(product)
+      console.log(product);
       this.deleteModalVisible = true;
     },
     confirmDelete() {
