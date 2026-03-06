@@ -80,26 +80,39 @@ export const Storage = {
     let products = this.get(STORAGE_KEYS.PRODUCTS);
     if (products.length === 0) {
       products = [  // 测试商品（无数据时用）
-        { id: 1, name: '泡面', category: {id:33,name:'泡面'}, period: 1, unit: '天' },
-        { id: 2, name: '矿泉水', category:{id:4,name:'矿泉水'}, period: 1, unit: '天' },
-        { id: 3, name: '卫生纸', category:{id:13,name:'生活用品'}, period: 1, unit: '天' }
+        { id: 1, name: '泡面', categoryId: 33, period: 1, unit: '天' },
+        { id: 2, name: '矿泉水', categoryId: 4, period: 1, unit: '天' },
+        { id: 3, name: '卫生纸', categoryId: 13, period: 1, unit: '天' }
       ];
       this.set(STORAGE_KEYS.PRODUCTS, products);
     }
     let shelfBatches = this.get(STORAGE_KEYS.SHELF_BATCHES)
     if (shelfBatches.length === 0) {
-      shelfBatches = []
+      shelfBatches = [
+        { id: 1, shelfProductId: 1, produceDate: '2026-1-1', batchnum: 5 },
+        { id: 2, shelfProductId: 2, produceDate: '2026-1-1', batchnum: 5 },
+        { id: 3, shelfProductId: 3, produceDate: '2026-1-1', batchnum: 5 },
+      ]
       this.set(STORAGE_KEYS.SHELF_BATCHES, shelfBatches);
     }
     let shelfProducts = this.get(STORAGE_KEYS.SHELF_PRODUCTS);
-    if (shelfBatches.length === 0) {
-      shelfBatches = []
+    if (shelfProducts.length === 0) {
+      shelfProducts = [
+        { id: 1, shelfId: 1, productId: 1, max: 10 },
+        { id: 2, shelfId: 1, productId: 2, max: 10 },
+        { id: 3, shelfId: 2, productId: 1, max: 10 },
+      ]
       this.set(STORAGE_KEYS.SHELF_PRODUCTS, shelfProducts);
     }
     let expireThreshold = this.getExpireThreshold()
     let shelves = this.get(STORAGE_KEYS.SHELVES);
     if (shelves.length === 0) {
-      shelves = ['货架1', '货架2', '货架3', '货架4', '货架5'];
+      shelves = [
+        { id: 1, name: '货架1' },
+        { id: 2, name: '货架2' },
+        { id: 3, name: '货架3' },
+        { id: 4, name: '货架4' },
+        { id: 5, name: '货架5' }];
       this.set(STORAGE_KEYS.SHELVES, shelves);
     }
     let categories = this.get(STORAGE_KEYS.CATEGORIES);

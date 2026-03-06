@@ -38,7 +38,7 @@
         >
           <el-row type="flex" justify="space-between">
             <el-col :span="10">
-              <strong>[{{ product.category.name }}] {{ product.name }}</strong>
+              <strong>[{{ getCategoryById(product.categoryId).name}}] {{ product.name }}</strong>
               <div style="font-size: 12px; color: #666; margin-top: 4px">
                 标准保质期：{{ product.period }}{{ product.unit }}
               </div>
@@ -208,7 +208,6 @@ export default {
       product: {
         id: "",
         name: "",
-        // 修复2：用categoryId（数字）替代category（对象）
         categoryId: 0,
         period: "",
         unit: "天",
@@ -248,16 +247,12 @@ export default {
       "shelfProducts",
       "expireThreshold",
     ]),
-    ...mapGetters(["getProductById"]),
+    ...mapGetters(["getProductById","getCategoryById"]),
     filteredProducts() {
       // 修复1：筛选逻辑改为基于categoryId
       if (this.filterCatId === 0) return this.products;
-      return this.products.filter((p) => p.category.id === this.filterCatId);
+      return this.products.filter((p) => p.categoryId === this.filterCatId);
     },
-    // 辅助：根据ID快速查找分类对象
-    getCategoryById() {
-      return (id) => this.categories.find(cat => cat.id === id) || {};
-    }
   },
   methods: {
     ...mapMutations([
@@ -297,7 +292,7 @@ export default {
         // 修复2：验证逻辑改为categoryId
         const validateResult = validateForm({
           商品名: this.product.name.trim(),
-          分类: this.getCategoryById(this.product.categoryId),
+          分类: this.product.categoryId,
           保质期数值: this.product.period,
         });
 
@@ -322,7 +317,7 @@ export default {
         const newProduct = {
           id: newProductId,
           name: this.product.name.trim(),
-          category: this.getCategoryById(this.product.categoryId),
+          categoryId: this.product.categoryId,
           period: this.product.period,
           unit: this.product.unit,
         };
@@ -339,7 +334,7 @@ export default {
       this.product = {
         id: product.id,
         name: product.name,
-        categoryId: product.category.id,
+        categoryId: product.categoryId,
         period: product.period,
         unit: product.unit,
       };
@@ -361,7 +356,7 @@ export default {
         // 修复2：验证逻辑改为categoryId
         const validateResult = validateForm({
           商品名: this.product.name.trim(),
-          分类: this.getCategoryById(this.product.categoryId),
+          分类: this.product.categoryId,
           保质期数值: this.product.period,
         });
 
@@ -380,11 +375,10 @@ export default {
         }
 
         const productId = this.product.id;
-        // 修复2：组装新商品数据时，把categoryId转为分类对象
         const newProduct = {
           id: productId,
           name: this.product.name.trim(),
-          category: this.getCategoryById(this.product.categoryId),
+          categoryId: this.product.categoryId,
           period: this.product.period,
           unit: this.product.unit,
         };
@@ -396,7 +390,7 @@ export default {
         });
 
         const newShelfBatches = this.shelfBatches.map((batch) => {
-          if (batch.productId === productId && batch.produceDate) {
+          if (batch.shelfProductId === productId && batch.produceDate) {
             const expireDateStr = calculateExpireDate(
               batch.produceDate,
               this.product.period,

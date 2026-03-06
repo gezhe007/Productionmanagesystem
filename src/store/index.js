@@ -21,9 +21,9 @@ const state = {
 // ========== 同步变更（仅更新状态 + 调用Storage持久化） ==========
 const mutations = {
   // 添加商品到列表
-  ADD_PRODUCT(state,data){
+  ADD_PRODUCT(state, data) {
     state.products = [...state.products, data];
-    Storage.set(STORAGE_KEYS.PRODUCTS,state.products)
+    Storage.set(STORAGE_KEYS.PRODUCTS, state.products)
   },
   // 更新货架列表
   UPDATE_SHELVES(state, data) {
@@ -142,8 +142,11 @@ const getters = {
 
   // 根据ID获取商品
   getProductById: (state) => (productId) => {
-    return state.products.find(p => p.id === productId) || null;
-  }
+    return state.products.find(p => p.id === productId) || {};
+  },
+  getCategoryById: (state) => (categoryId) => {
+    return state.categories.find(cat => cat.id === categoryId) || {};
+  },
 }
 
 export default new Vuex.Store({
