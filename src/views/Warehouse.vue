@@ -5,7 +5,7 @@
       style="display: flex; justify-content: center; margin-bottom: 20px"
     >
       <h2>仓库管理</h2>
-      <el-button type="success" @click="CLEAR_ALL_DATA">清空所有数据</el-button>
+      <!-- <el-button type="success" @click="CLEAR_ALL_DATA">恢复默认值</el-button> -->
     </div>
 
     <div class="warehouse-module">
