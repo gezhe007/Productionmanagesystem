@@ -105,7 +105,7 @@ export function calculateReplenishQty(shelf, productId, shelfProducts, shelfBatc
   // 计算当前总库存
   const totalQty = shelfBatches
     .filter(b => b.shelf === shelf && b.productId === productId)
-    .reduce((sum, b) => sum + (b.qty || 0), 0);
+    .reduce((sum, b) => sum + (b.batchnum || 0), 0);
 
   // 补货数量 = 最大容量 - 当前库存（最小为0）
   return Math.max(0, maxQty - totalQty);

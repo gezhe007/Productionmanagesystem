@@ -7,13 +7,13 @@
     <!-- 筛选条件 -->
     <div class="filter-group">
       筛选分类：
-      <el-select v-model="filterCat" @change="renderTotal" placeholder="全部">
-        <el-option label="全部" value=""></el-option>
+      <el-select v-model="filterCat" placeholder="全部">
+        <el-option label="全部" :value="0"></el-option>
         <el-option
           v-for="category in categories"
-          :key="category"
-          :label="category"
-          :value="category"
+          :key="category.id"
+          :label="category.name"
+          :value="category.id"
         ></el-option>
       </el-select>
     </div>
@@ -22,33 +22,31 @@
     <div id="total-content">
       <div v-if="!hasReplenishData" class="item">无需补货</div>
 
-      <div v-else v-for="shelf in shelves" :key="shelf">
-        <div v-for="product in getProductsInShelf(shelf)" :key="product.id">
-          <div v-if="calculateReplenishQty(shelf, product.id) > 0" class="item">
+      <div v-else v-for="shelf in shelves" :key="shelf.id">
+        <div
+          v-for="shelfproduct in getProductsInShelf(shelf.id)"
+          :key="shelfproduct.id"
+        >
+          <div v-if="calculateReplenishQty(shelfproduct.id) > 0" class="item">
             <h4>
-              [{{ product.category }}] {{ shelf }}→{{ product.name }}（需补
-              {{ calculateReplenishQty(shelf, product.id) }} 件）
+              [{{ shelfproduct.categoryName }}] {{ shelf.id }}→{{
+                shelfproduct.productName
+              }}（需补 {{ getReplenishQty(shelfProduct) }} 件）
             </h4>
 
             <!-- 原有批次 -->
             <div><strong>原有批次（补货数量填0则不补）</strong></div>
             <div
-              v-for="batch in getProductBatches(shelf, product.id)"
-              :key="batch.batch"
+              v-for="batch in getProductBatches(shelfProduct)"
+              :key="batch.id"
               class="batch"
             >
-              {{ batch.batch }} (当前库存：{{ batch.qty }}件) 补货数量：
+              {{ batch.produceDate }} (当前库存：{{ batch.batchnum }}件)
+              补货数量：
               <el-input-number
-                v-model="batch.addQty"
+                v-model="addQty"
                 :min="0"
-                @input="
-                  showReplenishPreview(
-                    shelf,
-                    product.id,
-                    batch.batch,
-                    batch.addQty
-                  )
-                "
+                @input=""
                 style="width: 100px"
               ></el-input-number>
               <div
@@ -132,12 +130,11 @@
 </template>
 
 <script>
-import { Storage, STORAGE_KEYS } from "@/utils/storage";
+import { mapState, mapGetters, mapMutations } from "vuex";
 import {
   calculateExpireDate,
   calculateReplenishQty,
   getProductsInShelf,
-  calculateAfterReplenishQty,
   validateForm,
 } from "@/utils/helpers";
 
@@ -167,6 +164,20 @@ export default {
     };
   },
   computed: {
+    ...mapState([
+      "products",
+      "categories",
+      "shelfProductBatches",
+      "shelfProducts",
+      "expireThreshold",
+    ]),
+    ...mapGetters([
+      "getProductById",
+      "getCategoryById",
+      "getShelfById",
+      "getProductsInShelf",
+      "getShelfProductById",
+    ]),
     // 是否有补货数据
     hasReplenishData() {
       for (const shelf of this.shelves) {
@@ -196,16 +207,6 @@ export default {
     },
   },
   mounted() {
-    // 初始化数据
-    const initData = Storage.init();
-    this.shelves = initData.shelves;
-    this.products = initData.products;
-    this.shelfProducts = initData.shelfProducts;
-    this.shelfBatches = initData.shelfBatches;
-    this.categories = initData.categories;
-    this.pendingNew = initData.pendingNew;
-    this.expireThreshold = initData.expireThreshold;
-
     // 初始化表单
     this.products.forEach((product) => {
       this.$set(this.newBatchForm, product.id, {
@@ -223,6 +224,7 @@ export default {
     this.renderTotal();
   },
   methods: {
+    ...mapMutations([]),
     // 渲染补货汇总
     renderTotal() {
       // 由模板自动渲染

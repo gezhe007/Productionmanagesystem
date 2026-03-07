@@ -134,9 +134,9 @@ const getters = {
     }
   },
   // 获取商品批次（按过期日期排序）
-  getProductBatches: (state) => (shelfProductId) => {
+  getProductBatches: (state) => (shelfProduct) => {
     return state.shelfProductBatches
-      .filter((b) => b.shelfProductId === shelfProductId)
+      .filter((b) => b.shelfProductId === shelfProduct.id)
       .sort((a, b) => new Date(a.expireDate) - new Date(b.expireDate));
   },
   // 获取所有临期/过期批次（警告用）
@@ -204,11 +204,22 @@ const getters = {
     const maxAvailable = shelfProduct.max - otherBatchesTotal;
     return Math.max(maxAvailable, 0);
   },
-  getAddBatchMaxQty: (state,getter) => (shelfProduct) => {
+  getAddBatchMaxQty: (state, getter) => (shelfProduct) => {
     const allBatches = getter.getProductBatches(shelfProduct.id) || [];
     const usedQty = allBatches.reduce((total, b) => total + (b.batchnum || 0), 0);
     return Math.max(shelfProduct.max - usedQty, 1); // 最小为1
   },
+  getReplenishQty: (state) => (shelfProduct) => {
+    if (!shelfProduct) return 0;
+    const maxQty = shelfProduct.max || 10;
+
+    const totalQty = state.shelfProductBatches
+      .filter(b => b.shelfProductId === shelfProduct.id)
+      .reduce((sum, b) => sum + (b.batchnum || 0), 0);
+
+    // 补货数量 = 最大容量 - 当前库存（最小为0）
+    return Math.max(0, maxQty - totalQty);
+  }
 }
 
 export default new Vuex.Store({
