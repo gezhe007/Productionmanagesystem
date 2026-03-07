@@ -7,7 +7,9 @@ export const STORAGE_KEYS = {
   SHELF_PRODUCTS_BATCHES: 'shelfProductBatches',
   SHELVES: 'shelves',
   EXPIRE_THRESHOLD: 'expireWarningThreshold',
-  CATEGORIES: 'categories'
+  CATEGORIES: 'categories',
+  // pendingNew 暂时不持久化，保留为空值或可改成 'pendingNew' 若未来需要
+  // PENDING_NEW: 'pendingNew'
 };
 
 // ========== 本地存储封装工具（纯工具函数，无业务逻辑） ==========
@@ -178,7 +180,8 @@ export const Storage = {
       products,
       shelfProducts,
       shelfProductBatches,
-      pendingNew: [],
+      // 待补货相关状态：form 保存新批次表单，list 保存待添加列表
+      pendingNew: { form: {}, list: [] },
       expireThreshold,
       categories
     };

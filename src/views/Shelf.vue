@@ -16,21 +16,38 @@
               <strong>{{ shelf.name }}</strong>
             </el-row>
             <el-row class="shelf-actions-row">
-              <el-button type="primary" @click="openAddProductToShelf(shelf)">添加商品</el-button>
-              <el-button type="warning" @click="openEditShelfModal(shelf)">修改名称</el-button>
-              <el-button type="danger" @click="openDeleteShelf(shelf)">删除货架</el-button>
+              <el-button type="primary" @click="openAddProductToShelf(shelf)"
+                >添加商品</el-button
+              >
+              <el-button type="warning" @click="openEditShelfModal(shelf)"
+                >修改名称</el-button
+              >
+              <el-button type="danger" @click="openDeleteShelf(shelf)"
+                >删除货架</el-button
+              >
             </el-row>
           </div>
         </template>
 
         <div v-if="getProductsInShelf(shelf.id).length > 0">
-          <div v-for="shelfProduct in getProductsInShelf(shelf.id)" :key="shelfProduct.id" class="product-item">
+          <div
+            v-for="shelfProduct in getProductsInShelf(shelf.id)"
+            :key="shelfProduct.id"
+            class="product-item"
+          >
             <el-row :gutter="20">
               <el-col :span="16">
-                <strong>[{{ shelfProduct.categoryName }}] {{ shelfProduct.productName }}</strong>
+                <strong
+                  >[{{ shelfProduct.categoryName }}]
+                  {{ shelfProduct.productName }}</strong
+                >
               </el-col>
               <el-col :span="8">
-                <el-button type="warning" size="mini" @click="openAddBatchModal(shelfProduct)">
+                <el-button
+                  type="warning"
+                  size="mini"
+                  @click="openAddBatchModal(shelfProduct)"
+                >
                   添加批次
                 </el-button>
               </el-col>
@@ -40,43 +57,69 @@
               <div v-if="getProductBatches(shelfProduct.id).length === 0">
                 <el-tag type="info">暂无批次记录</el-tag>
               </div>
-              <div v-for="batch in getProductBatches(shelfProduct.id)" :key="batch.id" class="batch-item">
+              <div
+                v-for="batch in getProductBatches(shelfProduct.id)"
+                :key="batch.id"
+                class="batch-item"
+              >
                 <el-row :gutter="10">
-                  <el-col :span="12">
+                  <el-col :span="24">
                     <span>{{ batch.produceDate }}</span>
-                    <el-tag :type="getBatchStatus(batch.expireDate).cls" size="mini" class="status-tag">
+                    <el-tag
+                      :type="getBatchStatus(batch.expireDate).cls"
+                      size="mini"
+                      class="status-tag"
+                    >
                       {{ getBatchStatus(batch.expireDate).text }}
                     </el-tag>
                   </el-col>
-                  <el-col :span="8">
+                </el-row>
+                <el-row type="flex" justify="space-between" style="margin-top: 10px">
+                  <el-col :span="6">
                     <el-input-number
                       v-model="batch.batchnum"
                       :min="0"
                       :max="getBatchMaxQty(batch, shelfProduct)"
-                      @change="updateBatchQty(batch.id, batch.batchnum, shelfProduct)"
+                      @change="
+                        updateBatchQty(batch.id, batch.batchnum, shelfProduct)
+                      "
                       size="mini"
+                      style="width: 180px;"
                     ></el-input-number>
                   </el-col>
-                  <el-col :span="4">
-                    <el-button size="mini" type="danger" @click="openDeleteBatchModal(batch, shelfProduct)">
+                  <el-col :span="6"
+                    ><el-button
+                      size="mini"
+                      type="danger"
+                      @click="openDeleteBatchModal(batch, shelfProduct)"
+                    >
                       删除
-                    </el-button>
-                  </el-col>
+                    </el-button></el-col
+                  >
                 </el-row>
               </div>
             </div>
 
             <el-row class="stock-info">
               <el-col>
-                库存总计：当前{{ getProductCurrentQty(shelfProduct) }}件 / 最大{{ shelfProduct.max }}件
+                库存总计：当前{{ getProductCurrentQty(shelfProduct) }}件 /
+                最大{{ shelfProduct.max }}件
               </el-col>
             </el-row>
-            
+
             <el-row class="product-actions">
-              <el-button size="mini" type="warning" @click="openEditMaxQtyModal(shelfProduct, shelfProduct.max)">
+              <el-button
+                size="mini"
+                type="warning"
+                @click="openEditMaxQtyModal(shelfProduct, shelfProduct.max)"
+              >
                 修改最大容量
               </el-button>
-              <el-button size="mini" type="danger" @click="openDeleteShelfProductModal(shelfProduct)">
+              <el-button
+                size="mini"
+                type="danger"
+                @click="openDeleteShelfProductModal(shelfProduct)"
+              >
                 删除商品
               </el-button>
             </el-row>
@@ -93,9 +136,16 @@
       :visible.sync="addShelfModalVisible"
       width="380px"
     >
-      <el-form :model="addShelfForm" :rules="addShelfRules" ref="addShelfFormRef">
+      <el-form
+        :model="addShelfForm"
+        :rules="addShelfRules"
+        ref="addShelfFormRef"
+      >
         <el-form-item label="货架名称" prop="name">
-          <el-input v-model="addShelfForm.name" placeholder="请输入货架名称"></el-input>
+          <el-input
+            v-model="addShelfForm.name"
+            placeholder="请输入货架名称"
+          ></el-input>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -111,9 +161,16 @@
       :visible.sync="editShelfModalVisible"
       width="380px"
     >
-      <el-form :model="editShelfForm" :rules="editShelfRules" ref="editShelfFormRef">
+      <el-form
+        :model="editShelfForm"
+        :rules="editShelfRules"
+        ref="editShelfFormRef"
+      >
         <el-form-item label="新货架名称" prop="newName">
-          <el-input v-model="editShelfForm.newName" placeholder="请输入新的货架名称"></el-input>
+          <el-input
+            v-model="editShelfForm.newName"
+            placeholder="请输入新的货架名称"
+          ></el-input>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -129,7 +186,11 @@
       :visible.sync="addProductModalVisible"
       width="380px"
     >
-      <el-form :model="addProductForm" :rules="addProductRules" ref="addProductFormRef">
+      <el-form
+        :model="addProductForm"
+        :rules="addProductRules"
+        ref="addProductFormRef"
+      >
         <el-form-item label="选择商品" prop="productId">
           <el-select
             v-model="addProductForm.productId"
@@ -139,7 +200,9 @@
             <el-option
               v-for="product in products"
               :key="product.id"
-              :label="`[${getCategoryById(product.categoryId).name}] ${product.name} (保质期：${product.period}${product.unit})`"
+              :label="`[${getCategoryById(product.categoryId).name}] ${
+                product.name
+              } (保质期：${product.period}${product.unit})`"
               :value="product.id"
             ></el-option>
           </el-select>
@@ -157,7 +220,9 @@
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="addProductModalVisible = false">取消</el-button>
-          <el-button type="primary" @click="saveAddProductToShelf">保存</el-button>
+          <el-button type="primary" @click="saveAddProductToShelf"
+            >保存</el-button
+          >
         </div>
       </template>
     </el-dialog>
@@ -167,7 +232,11 @@
       :visible.sync="addBatchModalVisible"
       width="380px"
     >
-      <el-form :model="addBatchForm" :rules="addBatchRules" ref="addBatchFormRef">
+      <el-form
+        :model="addBatchForm"
+        :rules="addBatchRules"
+        ref="addBatchFormRef"
+      >
         <el-form-item label="生产日期" prop="produceDate">
           <el-date-picker
             v-model="addBatchForm.produceDate"
@@ -201,7 +270,11 @@
       :visible.sync="editMaxQtyModalVisible"
       width="380px"
     >
-      <el-form :model="editMaxQtyForm" :rules="editMaxQtyRules" ref="editMaxQtyFormRef">
+      <el-form
+        :model="editMaxQtyForm"
+        :rules="editMaxQtyRules"
+        ref="editMaxQtyFormRef"
+      >
         <el-form-item label="新最大容量" prop="newMax">
           <el-input-number
             v-model="editMaxQtyForm.newMax"
@@ -219,17 +292,19 @@
         </div>
       </template>
     </el-dialog>
-    
+
     <el-dialog :visible.sync="deleteBatchModalVisible" width="380px">
       <strong>确定删除批次【{{ batch.produceDate }}】?</strong>
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="deleteBatchModalVisible = false">取消</el-button>
-          <el-button type="primary" @click="confirmDeleteBatch()">确认</el-button>
+          <el-button type="primary" @click="confirmDeleteBatch()"
+            >确认</el-button
+          >
         </div>
       </template>
     </el-dialog>
-    
+
     <el-dialog :visible.sync="deleteShelfModalVisible" width="380px">
       <div class="delete-tip">
         <strong>确定删除货架【{{ shelf.name }}】?</strong>
@@ -240,11 +315,13 @@
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="deleteShelfModalVisible = false">取消</el-button>
-          <el-button type="primary" @click="confirmDeleteShelf()">确认</el-button>
+          <el-button type="primary" @click="confirmDeleteShelf()"
+            >确认</el-button
+          >
         </div>
       </template>
     </el-dialog>
-    
+
     <el-dialog :visible.sync="deleteShelfProductModalVisible" width="380px">
       <div class="delete-tip">
         <strong>确定删除此商品【{{ shelfProduct.productName }}】?</strong>
@@ -253,8 +330,12 @@
       </div>
       <template #footer>
         <div class="dialog-footer">
-          <el-button @click="deleteShelfProductModalVisible = false">取消</el-button>
-          <el-button type="primary" @click="confirmDeleteShelfProduct()">确认</el-button>
+          <el-button @click="deleteShelfProductModalVisible = false"
+            >取消</el-button
+          >
+          <el-button type="primary" @click="confirmDeleteShelfProduct()"
+            >确认</el-button
+          >
         </div>
       </template>
     </el-dialog>
@@ -263,7 +344,11 @@
 
 <script>
 import { mapState, mapMutations, mapGetters } from "vuex";
-import { calculateExpireDate, calculateId, validateForm } from "@/utils/helpers";
+import {
+  calculateExpireDate,
+  calculateId,
+  validateForm,
+} from "@/utils/helpers";
 
 export default {
   name: "Shelf",
@@ -282,21 +367,32 @@ export default {
       editShelfOldName: "",
       editShelfForm: { newName: "" },
       editShelfRules: {
-        newName: [{ required: true, message: "请输入新的货架名称", trigger: "blur" }],
+        newName: [
+          { required: true, message: "请输入新的货架名称", trigger: "blur" },
+        ],
       },
       addProductModalVisible: false,
       addProductForm: { productId: "", max: 10 },
       addProductRules: {
-        productId: [{ required: true, message: "请选择商品", trigger: "change" }],
+        productId: [
+          { required: true, message: "请选择商品", trigger: "change" },
+        ],
         max: [
           { required: true, message: "请输入最大容量", trigger: "blur" },
-          { type: "number", min: 1, message: "最大容量必须大于0", trigger: "blur" },
+          {
+            type: "number",
+            min: 1,
+            message: "最大容量必须大于0",
+            trigger: "blur",
+          },
         ],
       },
       addBatchModalVisible: false,
       addBatchForm: { produceDate: "", batchnum: 1 },
       addBatchRules: {
-        produceDate: [{ required: true, message: "请选择生产日期", trigger: "change" }],
+        produceDate: [
+          { required: true, message: "请选择生产日期", trigger: "change" },
+        ],
         batchnum: [
           { required: true, message: "请输入数量", trigger: "blur" },
           { type: "number", min: 1, message: "数量必须大于0", trigger: "blur" },
@@ -307,7 +403,12 @@ export default {
       editMaxQtyRules: {
         newMax: [
           { required: true, message: "请输入新的最大容量", trigger: "blur" },
-          { type: "number", min: 1, message: "最大容量必须大于0", trigger: "blur" },
+          {
+            type: "number",
+            min: 1,
+            message: "最大容量必须大于0",
+            trigger: "blur",
+          },
         ],
       },
       deleteBatchModalVisible: false,
@@ -316,7 +417,13 @@ export default {
     };
   },
   computed: {
-    ...mapState(["shelves", "products", "shelfProducts", "shelfProductBatches", "expireThreshold"]),
+    ...mapState([
+      "shelves",
+      "products",
+      "shelfProducts",
+      "shelfProductBatches",
+      "expireThreshold",
+    ]),
     ...mapGetters([
       "getBatchStatus",
       "getProductBatches",
@@ -356,13 +463,17 @@ export default {
       return this.shelves.some((s) => s.name === name);
     },
 
-    ...mapMutations(["UPDATE_SHELVES", "UPDATE_SHELF_PRODUCTS", "UPDATE_SHELF_PRODUCT_BATCHES"]),
+    ...mapMutations([
+      "UPDATE_SHELVES",
+      "UPDATE_SHELF_PRODUCTS",
+      "UPDATE_SHELF_PRODUCT_BATCHES",
+    ]),
 
     openAddShelfModal() {
       this.addShelfModalVisible = true;
       this.resetForm("addShelfFormRef", this.addShelfForm);
     },
-    
+
     saveNewShelf() {
       this.$refs.addShelfFormRef.validate(async (valid) => {
         if (!valid) return;
@@ -378,7 +489,7 @@ export default {
           this.$message.error("该货架名称已存在");
           return;
         }
-        
+
         const newShelfId = calculateId(this.shelves);
         const newShelf = { id: newShelfId, name: shelfName };
         const newShelves = [...this.shelves, newShelf];
@@ -395,7 +506,7 @@ export default {
       this.editShelfModalVisible = true;
       this.resetForm("editShelfFormRef", this.editShelfForm);
     },
-    
+
     saveEditShelf() {
       this.$refs.editShelfFormRef.validate((valid) => {
         if (!valid) return;
@@ -419,7 +530,9 @@ export default {
         }
 
         const newShelf = { id: this.id, name: newName };
-        const newShelves = this.shelves.map((shelf) => shelf.id === this.id ? newShelf : shelf);
+        const newShelves = this.shelves.map((shelf) =>
+          shelf.id === this.id ? newShelf : shelf
+        );
         this.UPDATE_SHELVES(newShelves);
 
         this.editShelfModalVisible = false;
@@ -432,7 +545,7 @@ export default {
       this.addProductModalVisible = true;
       this.resetForm("addProductFormRef", this.addProductForm);
     },
-    
+
     saveAddProductToShelf() {
       this.$refs.addProductFormRef.validate((valid) => {
         if (!valid) return;
@@ -446,7 +559,9 @@ export default {
           return;
         }
 
-        const isExist = this.shelfProducts.some(sp => sp.shelfId === shelfId && sp.productId === productId);
+        const isExist = this.shelfProducts.some(
+          (sp) => sp.shelfId === shelfId && sp.productId === productId
+        );
         if (isExist) {
           this.$message.error("该商品已添加到当前货架");
           return;
@@ -469,7 +584,9 @@ export default {
         this.UPDATE_SHELF_PRODUCTS(newShelfProducts);
 
         this.addProductModalVisible = false;
-        this.$message.success(`商品【${product.name}】已添加到货架【${this.shelf.name}】`);
+        this.$message.success(
+          `商品【${product.name}】已添加到货架【${this.shelf.name}】`
+        );
       });
     },
 
@@ -478,37 +595,45 @@ export default {
       this.addBatchModalVisible = true;
       this.resetForm("addBatchFormRef", this.addBatchForm);
       const allBatches = this.getProductBatches(shelfProduct.id) || [];
-      const usedQty = allBatches.reduce((total, b) => total + (b.batchnum || 0), 0);
+      const usedQty = allBatches.reduce(
+        (total, b) => total + (b.batchnum || 0),
+        0
+      );
       const maxAvailable = shelfProduct.max - usedQty;
       this.addBatchForm.batchnum = maxAvailable > 0 ? maxAvailable : 1;
     },
-    
+
     saveAddBatch() {
       this.$refs.addBatchFormRef.validate((valid) => {
         if (!valid) return;
 
         const { produceDate, batchnum } = this.addBatchForm;
-        const validateResult = validateForm({ 生产日期: produceDate, 数量: batchnum });
+        const validateResult = validateForm({
+          生产日期: produceDate,
+          数量: batchnum,
+        });
         if (!validateResult.valid) {
           this.$message.error(validateResult.message);
           return;
         }
-        
-        const isBatchExist = this.shelfProductBatches.some(b => b.produceDate === produceDate);
+
+        const isBatchExist = this.shelfProductBatches.some(
+          (b) => b.produceDate === produceDate
+        );
         if (isBatchExist) {
           this.$message.error(`该生产日期(${produceDate})的批次已存在`);
           return;
         }
-        
+
         const period = this.shelfProduct.period;
         const unit = this.shelfProduct.unit;
         const expireDate = calculateExpireDate(produceDate, period, unit);
-        
+
         if (!expireDate) {
           this.$message.error("过期日期计算失败，请检查商品保质期配置");
           return;
         }
-        
+
         const shelfProductId = this.shelfProduct.id;
         const newSPBId = calculateId(this.shelfProductBatches);
         const newShelfProductBatch = {
@@ -518,12 +643,17 @@ export default {
           expireDate: expireDate,
           batchnum: batchnum,
         };
-        
-        const newShelfProductBatches = [...this.shelfProductBatches, newShelfProductBatch];
+
+        const newShelfProductBatches = [
+          ...this.shelfProductBatches,
+          newShelfProductBatch,
+        ];
         this.UPDATE_SHELF_PRODUCT_BATCHES(newShelfProductBatches);
-        
+
         this.addBatchModalVisible = false;
-        this.$message.success(`商品【${this.shelfProduct.productName}】批次【${produceDate}】添加成功`);
+        this.$message.success(
+          `商品【${this.shelfProduct.productName}】批次【${produceDate}】添加成功`
+        );
       });
     },
 
@@ -535,14 +665,14 @@ export default {
         this.editMaxQtyForm.newMax = currentMax;
       });
     },
-    
+
     saveEditMaxQty() {
       this.$refs.editMaxQtyFormRef.validate((valid) => {
         if (!valid) return;
 
         const { newMax } = this.editMaxQtyForm;
         const validateResult = validateForm({ 新最大容量: newMax });
-        
+
         if (!validateResult.valid) {
           this.$message.error(validateResult.message);
           return;
@@ -554,10 +684,10 @@ export default {
           return;
         }
 
-        const newShelfProducts = this.shelfProducts.map(sp => 
+        const newShelfProducts = this.shelfProducts.map((sp) =>
           sp.id === this.shelfProduct.id ? { ...sp, max: newMax } : sp
         );
-        
+
         this.UPDATE_SHELF_PRODUCTS(newShelfProducts);
         this.editMaxQtyModalVisible = false;
         this.$message.success(`最大容量修改为${newMax}件`);
@@ -569,67 +699,75 @@ export default {
         this.$message.error("参数错误，无法更新数量");
         return;
       }
-      
-      const newBatches = this.shelfProductBatches.map(b => 
+
+      const newBatches = this.shelfProductBatches.map((b) =>
         b.id === batchId ? { ...b, batchnum } : b
       );
-      
+
       this.UPDATE_SHELF_PRODUCT_BATCHES(newBatches);
     },
-    
+
     openDeleteShelf(shelf) {
       this.shelf = { ...shelf };
       this.deleteShelfModalVisible = true;
     },
-    
+
     confirmDeleteShelf() {
       const shelfId = this.shelf.id;
-      const newShelves = this.shelves.filter(s => s.id !== shelfId);
-      const newShelfProducts = this.shelfProducts.filter(sp => sp.shelfId !== shelfId);
+      const newShelves = this.shelves.filter((s) => s.id !== shelfId);
+      const newShelfProducts = this.shelfProducts.filter(
+        (sp) => sp.shelfId !== shelfId
+      );
       const newShelfProductBatches = this.shelfProductBatches.filter(
-        b => this.getShelfProductById(b.shelfProductId).shelfId !== shelfId
+        (b) => this.getShelfProductById(b.shelfProductId).shelfId !== shelfId
       );
 
       this.UPDATE_SHELVES(newShelves);
       this.UPDATE_SHELF_PRODUCTS(newShelfProducts);
       this.UPDATE_SHELF_PRODUCT_BATCHES(newShelfProductBatches);
-      
+
       this.$message.success(`【${this.shelf.name}】删除成功`);
       this.deleteShelfModalVisible = false;
     },
-    
+
     openDeleteBatchModal(batch, shelfProduct) {
       this.batch = { ...batch };
       this.shelfProduct = { ...shelfProduct };
       this.deleteBatchModalVisible = true;
     },
-    
+
     confirmDeleteBatch() {
       const batchId = this.batch.id;
-      const newShelfProductBatches = this.shelfProductBatches.filter(spb => spb.id !== batchId);
-      
+      const newShelfProductBatches = this.shelfProductBatches.filter(
+        (spb) => spb.id !== batchId
+      );
+
       this.deleteBatchModalVisible = false;
       this.$message.success(
         `商品【${this.shelfProduct.productName}】的【${this.batch.produceDate}】批次已删除`
       );
-      
+
       this.UPDATE_SHELF_PRODUCT_BATCHES(newShelfProductBatches);
     },
-    
+
     openDeleteShelfProductModal(shelfProduct) {
       this.shelfProduct = { ...shelfProduct };
       this.deleteShelfProductModalVisible = true;
     },
-    
+
     confirmDeleteShelfProduct() {
       const shelfProductId = this.shelfProduct.id;
-      const newShelfProducts = this.shelfProducts.filter(sp => sp.id !== shelfProductId);
-      const newShelfProductBatches = this.shelfProductBatches.filter(spb => spb.shelfProductId !== shelfProductId);
-      
+      const newShelfProducts = this.shelfProducts.filter(
+        (sp) => sp.id !== shelfProductId
+      );
+      const newShelfProductBatches = this.shelfProductBatches.filter(
+        (spb) => spb.shelfProductId !== shelfProductId
+      );
+
       this.deleteShelfProductModalVisible = false;
       this.UPDATE_SHELF_PRODUCTS(newShelfProducts);
       this.UPDATE_SHELF_PRODUCT_BATCHES(newShelfProductBatches);
-      
+
       this.$message.success(
         `商品【${this.shelfProduct.productName}】已成功从【${this.shelfProduct.shelfName}】删除`
       );
@@ -644,10 +782,14 @@ export default {
   justify-content: center;
 }
 
+/* 顶部操作按钮行 - 添加分隔线 */
 .operation-bar {
   display: flex;
   justify-content: flex-end;
   margin: 15px 0;
+  padding-bottom: 10px; /* 分隔线与按钮的间距 */
+  border-bottom: 1px solid #e6e6e6; /* 浅灰色分隔线 */
+  position: relative;
 }
 
 .shelf-item {
@@ -670,14 +812,26 @@ export default {
   margin: 0 0 10px 0;
 }
 
+/* 货架头部按钮行 - 添加分隔线 */
 .shelf-actions-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding-top: 10px;
+  border-top: 1px solid #e6e6e6; /* 浅灰色分隔线 */
 }
 
+/* 商品行 - 添加分隔线 */
 .product-item {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
+  padding: 10px 0;
+  border-bottom: 1px solid #e6e6e6; /* 商品行底部分隔线 */
+}
+
+/* 最后一个商品行去掉底部分隔线（可选优化） */
+.product-item:last-child {
+  border-bottom: none;
+  margin-bottom: 10px;
 }
 
 .batch-list {
@@ -704,9 +858,13 @@ export default {
   margin: 10px 0;
 }
 
+/* 商品操作按钮行 - 移除分隔线 */
 .product-actions {
   display: flex;
   justify-content: flex-end;
+  gap: 8px;
+  /* 移除了原有的 border-top、padding-top、margin-top */
+  margin-top: 5px; /* 仅保留少量间距 */
 }
 
 .empty-tip {

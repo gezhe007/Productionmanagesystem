@@ -15,6 +15,8 @@ const state = {
   shelfProductBatches: initData.shelfProductBatches,   // 批次列表
   expireThreshold: initData.expireThreshold, // 临期阈值
   categories: initData.categories, // 商品分类
+  // pendingNew 包含两个字段：form 用于保存各货架商品的临时表单；
+  // list 保存将要真正提交的待补货项目。
   pendingNew: initData.pendingNew // 待新增数据临时存储
 }
 
@@ -45,7 +47,8 @@ const mutations = {
   // 更新批次列表
   UPDATE_SHELF_PRODUCT_BATCHES(state, data) {
     state.shelfProductBatches = data;
-    Storage.set(STORAGE_KEYS.SHELF_PRODUCT_BATCHES, data);
+    // 注意 key 名称与 storage.js 中定义保持一致
+    Storage.set(STORAGE_KEYS.SHELF_PRODUCTS_BATCHES, data);
   },
 
   // 更新分类列表
@@ -58,6 +61,56 @@ const mutations = {
   SET_EXPIRE_THRESHOLD(state, value) {
     state.expireThreshold = value;
     Storage.setExpireThreshold(value);
+  },
+
+  // --- 补货模块相关辅助变更 ---
+  // 初始化所有批次的 addQty 字段（保证存在且为 0）
+  INIT_BATCH_ADD_QTY(state) {
+    state.shelfProductBatches.forEach(b => {
+      if (!('addQty' in b)) {
+        Vue.set(b, 'addQty', 0);
+      }
+    });
+  },
+
+  // 修改指定批次的补货数量（仅更新状态，不持久化）
+  UPDATE_BATCH_ADD_QTY(state, { batchId, addQty }) {
+    state.shelfProductBatches = state.shelfProductBatches.map(b =>
+      b.id === batchId ? { ...b, addQty } : b
+    );
+  },
+
+  // 更新待补货表单数据
+  UPDATE_NEW_BATCH_FORM(state, { shelfProductId, formData }) {
+    if (!state.pendingNew) state.pendingNew = { form: {}, list: [] };
+    if (!state.pendingNew.form) state.pendingNew.form = {};
+    state.pendingNew.form = {
+      ...state.pendingNew.form,
+      [shelfProductId]: formData
+    };
+  },
+
+  // 向待补货列表追加条目
+  ADD_PENDING_ITEM(state, item) {
+    if (!state.pendingNew) state.pendingNew = { form: {}, list: [] };
+    if (!state.pendingNew.list) state.pendingNew.list = [];
+    state.pendingNew.list.push(item);
+  },
+
+  // 根据货架商品 id 和索引删除待补货项
+  DELETE_PENDING_ITEM(state, { shelfProductId, index }) {
+    if (!state.pendingNew || !state.pendingNew.list) return;
+    state.pendingNew.list = state.pendingNew.list.filter((v, idx) => {
+      return !(v.shelfProductId === shelfProductId && idx === index);
+    });
+  },
+
+  // 清空待补货相关数据
+  CLEAR_PENDING_LIST(state) {
+    if (state.pendingNew) {
+      state.pendingNew.list = [];
+      state.pendingNew.form = {};
+    }
   },
 
   // 更新待新增数据
