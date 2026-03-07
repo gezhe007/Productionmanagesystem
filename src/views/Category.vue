@@ -7,7 +7,12 @@
 
     <!-- 操作按钮 -->
     <div class="function-buttons">
-      <el-button type="success" @click="openAddModal">新增分类</el-button>
+      <el-button
+        type="success"
+        style="border: 1px solid #000"
+        @click="openAddModal"
+        >新增分类</el-button
+      >
     </div>
 
     <!-- 分类列表 -->
@@ -31,12 +36,14 @@
             <el-button
               type="warning"
               size="mini"
+              style="border: 1px solid #000"
               @click="openEditModal(category)"
               >修改</el-button
             >
             <el-button
               type="danger"
               size="mini"
+              style="border: 1px solid #000"
               @click="openDeleteModal(category)"
               >删除</el-button
             >
@@ -50,6 +57,7 @@
       title="新增分类"
       :visible.sync="addModalVisible"
       width="380px"
+      style="border: 1px solid #000"
       @close="resetAddForm"
     >
       <el-form
@@ -106,7 +114,9 @@
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="deleteModalVisible = false">取消</el-button>
-          <el-button type="primary" @click="confirmDelete(category)">确定</el-button>
+          <el-button type="primary" @click="confirmDelete(category)"
+            >确定</el-button
+          >
         </div>
       </template>
     </el-dialog>
@@ -179,7 +189,7 @@ export default {
           this.$message.error("该分类已存在");
           return;
         }
-        const newCategoryId =calculateId(this.categories)
+        const newCategoryId = calculateId(this.categories);
 
         const newCategory = {
           id: newCategoryId,
@@ -275,13 +285,14 @@ export default {
   margin: 20px 0;
   padding: 15px;
   background: #f5f5f5;
+  border: 1px solid #000;
   border-radius: 8px;
 }
 
 .item {
   margin: 10px 0;
   padding: 12px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid #000;
   border-radius: 8px;
   background: #fff;
 }

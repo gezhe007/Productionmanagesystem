@@ -3,16 +3,6 @@
   <el-card class="warning-card" shadow="formed">
     <div slot="header" class="clearfix">
       <span>⚠️ 保质期状态警告</span>
-      <!-- 新增：刷新警告列表按钮 -->
-      <el-button
-        :loading="refreshVisible"
-        size="mini"
-        icon="el-icon-refresh"
-        @click="handleRefresh"
-        style="float: right"
-      >
-        刷新
-      </el-button>
     </div>
     <!-- 临期阈值设置 -->
     <el-card class="threshold-card" shadow="formed">
@@ -40,7 +30,7 @@
         <!-- 右侧区域：保存按钮 -->
         <el-form-item>
           <el-button
-            style="width: 70px;padding: 8px 10px;"
+            style="width: 70px;padding: 8px 10px;border: 1px solid #000;"
             type="success"
             size="mini"
             icon="el-icon-check"
@@ -90,7 +80,6 @@ export default {
       thresholdForm: {
         days: 7, // 默认临期提醒天数
       },
-      refreshVisible: false, // 刷新按钮
       warnItems: [], // 警告列表
     };
   },
@@ -101,7 +90,6 @@ export default {
       "shelfProducts",
       "products",
     ]),
-    // 映射store的getWarnBatches getter
     ...mapGetters(["getWarnBatches"]),
   },
   mounted() {
@@ -124,7 +112,6 @@ export default {
         this.renderWarningArea();
       },
     },
-    // 监听getWarnBatches变化（可选，进一步简化）
     getWarnBatches: {
       deep: true,
       handler() {
@@ -137,17 +124,11 @@ export default {
 
     renderWarningArea() {
       this.warnItems = this.getWarnBatches.map((item) => ({
-        text: `${item.shelf} → ${item.productName} (批次：${item.batch} | ${item.status.text})`,
+        text: `${item.shelfName} → ${item.productName}【${item.produceDate} | ${item.status.text}】`,
         cls: item.status.cls,
         icon:
           item.status.cls === "danger" ? "el-icon-error" : "el-icon-warning",
       }));
-    },
-    handleRefresh() {
-      this.refreshVisible = true;
-      this.renderWarningArea();
-      this.refreshVisible = false;
-      this.$message.success("警告列表已刷新");
     },
 
     saveThreshold() {
@@ -200,6 +181,7 @@ export default {
 
 .warning-card {
   margin-bottom: 20px;
+  border: 1px solid #000;
 }
 
 .warn-list {

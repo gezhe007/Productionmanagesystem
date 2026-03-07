@@ -7,9 +7,7 @@ export const STORAGE_KEYS = {
   SHELF_PRODUCTS_BATCHES: 'shelfProductBatches',
   SHELVES: 'shelves',
   EXPIRE_THRESHOLD: 'expireWarningThreshold',
-  CATEGORIES: 'categories',
-  // pendingNew 暂时不持久化，保留为空值或可改成 'pendingNew' 若未来需要
-  // PENDING_NEW: 'pendingNew'
+  CATEGORIES: 'categories'
 };
 
 // ========== 本地存储封装工具（纯工具函数，无业务逻辑） ==========
@@ -81,95 +79,78 @@ export const Storage = {
   init() {
     let products = this.get(STORAGE_KEYS.PRODUCTS);
     if (products.length === 0) {
-      products = [  // 测试商品（无数据时用）
-        { id: 1, name: '牛奶', categoryId: 1, period: 1, unit: '天' },
-        { id: 2, name: '矿泉水', categoryId: 4, period: 2, unit: '天' },
-        { id: 3, name: '卫生纸', categoryId: 13, period: 3, unit: '天' }
+      products = [
+        { id: 1, name: '牛奶', categoryId: 1, period: 7, unit: '天' },    // 保质期7天
+        { id: 2, name: '矿泉水', categoryId: 3, period: 365, unit: '天' }, // 保质期365天
+        { id: 3, name: '饼干', categoryId: 7, period: 6, unit: '月' },     // 保质期6个月
+        { id: 4, name: '洗衣液', categoryId: 13, period: 3, unit: '年' }   // 保质期3年
       ];
       this.set(STORAGE_KEYS.PRODUCTS, products);
     }
-    let shelfProductBatches = this.get(STORAGE_KEYS.SHELF_PRODUCTS_BATCHES)
+
+    let shelfProductBatches = this.get(STORAGE_KEYS.SHELF_PRODUCTS_BATCHES);
     if (shelfProductBatches.length === 0) {
       shelfProductBatches = [
-        { id: 1, shelfProductId: 1, produceDate: '2026-03-06', expireDate: '2026-03-07', batchnum: 5 },
-        { id: 2, shelfProductId: 2, produceDate: '2026-03-06', expireDate: '2026-03-08', batchnum: 4 },
-        { id: 3, shelfProductId: 3, produceDate: '2026-03-06', expireDate: '2026-03-07', batchnum: 3 },
-      ]
+        // 牛奶：两个批次，一个正常，一个临期（便于测试提醒）
+        { id: 1, shelfProductId: 1, produceDate: '2026-03-05', expireDate: '2026-03-12', batchnum: 20 },
+        { id: 2, shelfProductId: 1, produceDate: '2026-03-01', expireDate: '2026-03-08', batchnum: 10 },
+        // 矿泉水：一个批次
+        { id: 3, shelfProductId: 2, produceDate: '2025-03-01', expireDate: '2026-03-01', batchnum: 50 },
+        // 饼干：两个批次，一个临期，一个正常
+        { id: 4, shelfProductId: 3, produceDate: '2025-09-08', expireDate: '2026-03-08', batchnum: 30 },
+        { id: 5, shelfProductId: 3, produceDate: '2025-12-01', expireDate: '2026-06-01', batchnum: 20 },
+        // 洗衣液：一个批次
+        { id: 6, shelfProductId: 4, produceDate: '2023-01-01', expireDate: '2026-01-01', batchnum: 15 }
+      ];
       this.set(STORAGE_KEYS.SHELF_PRODUCTS_BATCHES, shelfProductBatches);
     }
+
     let shelfProducts = this.get(STORAGE_KEYS.SHELF_PRODUCTS);
     if (shelfProducts.length === 0) {
       shelfProducts = [
-        { id: 1, shelfId: 1, productId: 1, max: 10 },
-        { id: 2, shelfId: 1, productId: 2, max: 10 },
-        { id: 3, shelfId: 2, productId: 1, max: 10 },
-      ]
+        { id: 1, shelfId: 1, productId: 1, max: 50 },   // 牛奶 → 饮料区
+        { id: 2, shelfId: 1, productId: 2, max: 100 },  // 矿泉水 → 饮料区
+        { id: 3, shelfId: 2, productId: 3, max: 80 },   // 饼干 → 零食区
+        { id: 4, shelfId: 3, productId: 4, max: 40 }    // 洗衣液 → 日用品区
+      ];
       this.set(STORAGE_KEYS.SHELF_PRODUCTS, shelfProducts);
     }
-    let expireThreshold = this.getExpireThreshold()
+
+    let expireThreshold = this.getExpireThreshold();
+
     let shelves = this.get(STORAGE_KEYS.SHELVES);
     if (shelves.length === 0) {
       shelves = [
-        { id: 1, name: '货架1' },
-        { id: 2, name: '货架2' },
-        { id: 3, name: '货架3' },
-        { id: 4, name: '货架4' },
-        { id: 5, name: '货架5' }];
+        { id: 1, name: '饮料区' },
+        { id: 2, name: '零食区' },
+        { id: 3, name: '日用品区' }
+      ];
       this.set(STORAGE_KEYS.SHELVES, shelves);
     }
+
     let categories = this.get(STORAGE_KEYS.CATEGORIES);
     if (categories.length === 0) {
       categories = [
-        { id: 1, name: '牛奶' },
-        { id: 2, name: '啤酒' },
-        { id: 3, name: '饮料' },
-        { id: 4, name: '矿泉水' },
-        { id: 5, name: '槟榔' },
-        { id: 6, name: '散装零食' },
-        { id: 7, name: '糖果' },
-        { id: 8, name: '饼干' },
-        { id: 9, name: '薯片' },
-        { id: 10, name: '玩具' },
-        { id: 11, name: '雪糕' },
-        { id: 12, name: '干果' },
-        { id: 13, name: '生活用品' },
-        { id: 14, name: '沐浴露' },
-        { id: 15, name: '洗衣液' },
-        { id: 16, name: '蚊香' },
-        { id: 17, name: '洗手液' },
-        { id: 18, name: '洗面奶' },
-        { id: 19, name: '洗发露' },
-        { id: 20, name: '牙刷' },
-        { id: 21, name: '牙膏' },
-        { id: 22, name: '毛巾' },
-        { id: 23, name: '纸巾' },
-        { id: 24, name: '卫生巾' },
-        { id: 25, name: '洗洁精' },
-        { id: 26, name: '洗衣粉' },
-        { id: 27, name: '辣条' },
-        { id: 28, name: '榨菜' },
-        { id: 29, name: '瓜子' },
-        { id: 30, name: '花生' },
-        { id: 31, name: '面包' },
-        { id: 32, name: '火腿肠' },
-        { id: 33, name: '泡面' },
-        { id: 34, name: '油' },
-        { id: 35, name: '盐' },
-        { id: 36, name: '罐头' },
-        { id: 37, name: '酱油' },
-        { id: 38, name: '蚝油' },
-        { id: 39, name: '一次性内裤' },
-        { id: 40, name: '充电器' },
-        { id: 41, name: '手套' },
-        { id: 42, name: '刷子' },
-        { id: 43, name: '筷子' },
-        { id: 44, name: '袜子' },
-        { id: 45, name: '剃须刀' },
-        { id: 46, name: '唇膏' },
-        { id: 47, name: '白酒' },
-        { id: 48, name: '红酒' },
-        { id: 49, name: '电池' },
-        { id: 50, name: '扑克牌' }
+        { id: 1, name: '乳制品' },
+        { id: 2, name: '饮料' },
+        { id: 3, name: '矿泉水/纯净水' },
+        { id: 4, name: '啤酒' },
+        { id: 5, name: '白酒/洋酒' },
+        { id: 6, name: '红酒/果酒' },
+        { id: 7, name: '休闲零食' },
+        { id: 8, name: '方便食品' },
+        { id: 9, name: '粮油调味' },
+        { id: 10, name: '速冻食品' },
+        { id: 11, name: '熟食/面包' },
+        { id: 12, name: '槟榔' },
+        { id: 13, name: '个人护理' },
+        { id: 14, name: '女性护理' },
+        { id: 15, name: '家居清洁' },
+        { id: 16, name: '纸品' },
+        { id: 17, name: '日用百货' },
+        { id: 18, name: '小家电/五金' },
+        { id: 19, name: '玩具' },
+        { id: 20, name: '文体用品' }
       ];
       this.set(STORAGE_KEYS.CATEGORIES, categories);
     }
@@ -180,8 +161,10 @@ export const Storage = {
       products,
       shelfProducts,
       shelfProductBatches,
-      // 待补货相关状态：form 保存新批次表单，list 保存待添加列表
-      pendingNew: { form: {}, list: [] },
+      pendingNew: {
+        form: {},
+        list: []
+      },
       expireThreshold,
       categories
     };

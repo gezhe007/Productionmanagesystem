@@ -12,26 +12,51 @@ export function calculateExpireDate(produceDate, period, unit) {
     return '';
   }
 
-  const produceDateObj = new Date(produceDate);
+  // 手动解析 YYYY-MM-DD 为本地时间数值
+  const parts = produceDate.split('-');
+  if (parts.length !== 3) {
+    console.warn('计算过期日期失败：生产日期格式错误，应为 YYYY-MM-DD', produceDate);
+    return '';
+  }
+  const year = parseInt(parts[0], 10);
+  const month = parseInt(parts[1], 10); // 1-12
+  const day = parseInt(parts[2], 10);
+
+  // 创建本地日期对象（月份从 0 开始）
+  const produceDateObj = new Date(year, month - 1, day);
   if (isNaN(produceDateObj.getTime())) {
-    console.warn('计算过期日期失败：生产日期格式错误', produceDate);
+    console.warn('计算过期日期失败：生产日期无效', produceDate);
     return '';
   }
 
   const expireDateObj = new Date(produceDateObj);
   switch (unit) {
     case '天':
-      expireDateObj.setDate(produceDateObj.getDate() + period);
+      expireDateObj.setDate(day + period);
       break;
     case '月':
-      expireDateObj.setMonth(produceDateObj.getMonth() + period);
+      // 方案一：使用 JS 自动溢出（如 1月31日+1月 => 3月2日）
+      expireDateObj.setMonth(month - 1 + period);
+      
+      // 方案二：业务期望的“对应日期”（如果不存在则取当月最后一天）
+      // 下面是一个简单的实现，可根据需要选用
+      /*
+      const targetMonth = month - 1 + period;
+      const lastDayOfTargetMonth = new Date(year, targetMonth + 1, 0).getDate();
+      const targetDay = Math.min(day, lastDayOfTargetMonth);
+      expireDateObj.setFullYear(year + Math.floor(targetMonth / 12), targetMonth % 12, targetDay);
+      */
       break;
     case '年':
-      expireDateObj.setFullYear(produceDateObj.getFullYear() + period);
+      expireDateObj.setFullYear(year + period);
       break;
   }
 
-  return expireDateObj.toISOString().split('T')[0];
+  // 手动格式化 YYYY-MM-DD（基于本地时间）
+  const y = expireDateObj.getFullYear();
+  const m = String(expireDateObj.getMonth() + 1).padStart(2, '0');
+  const d = String(expireDateObj.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
 }
 
 /**

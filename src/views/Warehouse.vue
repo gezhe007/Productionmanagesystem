@@ -17,7 +17,7 @@
         <el-select
           v-model="filterCatId"
           placeholder="全部"
-          style="width: 200px"
+          style="width: 150px;border: 1px solid #000;"
         >
           <el-option label="全部" :value="0"></el-option>
           <el-option
@@ -27,7 +27,7 @@
             :value="category.id"
           ></el-option>
         </el-select>
-        <el-button type="success" @click="openAddModal">添加新商品</el-button>
+        <el-button style="border: 1px solid #000;" type="success" @click="openAddModal">添加新商品</el-button>
       </div>
 
       <div id="product-batch-list" class="product-list-container">
@@ -54,6 +54,7 @@
               <el-button
                 type="warning"
                 size="mini"
+                style="border: 1px solid #000;"
                 @click="openEditModal(product)"
                 >修改</el-button
               >
@@ -63,7 +64,7 @@
                 type="danger"
                 size="mini"
                 @click="openDeleteModal(product)"
-                style="margin-left: 8px"
+                style="margin-left: 8px;border: 1px solid #000;"
                 >删除</el-button
               ></el-col
             >
@@ -281,7 +282,7 @@ export default {
       "CLEAR_ALL_DATA",
       "UPDATE_PRODUCTS",
       "UPDATE_SHELF_PRODUCTS",
-      "UPDATE_SHELF_BATCHES",
+      "UPDATE_SHELF_PRODUCT_BATCHES",
     ]),
 
     openAddModal() {
@@ -299,7 +300,7 @@ export default {
         this.product = {
           id: "",
           name: "",
-          categoryId: null,
+          categoryId: "",
           period: "",
           unit: "天",
         };
@@ -342,7 +343,6 @@ export default {
         };
         this.ADD_PRODUCT(newProduct);
         this.$message.success("商品添加成功");
-        console.log(newProduct);
         this.addModalVisible = false;
       });
     },
@@ -428,7 +428,7 @@ export default {
         });
 
         this.UPDATE_PRODUCTS(newProducts);
-        this.UPDATE_SHELF_BATCHES(newShelfProductBatches);
+        this.UPDATE_SHELF_PRODUCT_BATCHES(newShelfProductBatches);
 
         this.$message.success("商品修改成功，已同步更新所有关联批次信息");
         this.editModalVisible = false;
@@ -436,7 +436,6 @@ export default {
     },
     openDeleteModal(product) {
       this.product = { ...product };
-      console.log(product);
       this.deleteModalVisible = true;
     },
     confirmDelete() {
@@ -450,7 +449,7 @@ export default {
       );
       this.UPDATE_PRODUCTS(newProducts);
       this.UPDATE_SHELF_PRODUCTS(newShelfProducts);
-      this.UPDATE_SHELF_BATCHES(newShelfProductBatches);
+      this.UPDATE_SHELF_PRODUCT_BATCHES(newShelfProductBatches);
       this.$message.success(`商品【${this.product.name}】已成功删除`);
       this.deleteModalVisible = false;
     },
@@ -462,7 +461,7 @@ export default {
 .warehouse-module {
   margin: 15px 0;
   padding: 20px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid #000;
   border-radius: 8px;
   background-color: #fff;
 }

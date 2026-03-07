@@ -1,134 +1,175 @@
 <template>
   <div>
-    <div class="page-header">
-      <h2>货架清点</h2>
-    </div>
-
-    <el-row class="operation-bar">
-      <el-button type="success" @click="openAddShelfModal">新增货架</el-button>
+    <!-- 新增：显示/隐藏操作按钮的切换按钮 -->
+    <el-row class="toggle-bar" style="margin-bottom: 15px; text-align: right">
+      <el-button
+        type="success"
+        style="border: 1px solid #000"
+        v-show="showButtons"
+        @click="openAddShelfModal"
+        >新增货架</el-button
+      >
+      <el-button
+        type="primary"
+        style="border: 1px solid #000"
+        icon="el-icon-s-tools"
+        @click="toggleButtons"
+      >
+        {{ showButtons ? "隐藏所有操作按钮" : "显示所有操作按钮" }}
+      </el-button>
     </el-row>
-
-    <div v-for="shelf in shelves" :key="shelf.id" class="shelf-item">
-      <el-card shadow="formed" class="shelf-card">
-        <template #header>
-          <div class="shelf-header">
-            <el-row class="shelf-title-row">
-              <strong>{{ shelf.name }}</strong>
-            </el-row>
-            <el-row class="shelf-actions-row">
-              <el-button type="primary" @click="openAddProductToShelf(shelf)"
-                >添加商品</el-button
-              >
-              <el-button type="warning" @click="openEditShelfModal(shelf)"
-                >修改名称</el-button
-              >
-              <el-button type="danger" @click="openDeleteShelf(shelf)"
-                >删除货架</el-button
-              >
-            </el-row>
-          </div>
-        </template>
-
-        <div v-if="getProductsInShelf(shelf.id).length > 0">
-          <div
-            v-for="shelfProduct in getProductsInShelf(shelf.id)"
-            :key="shelfProduct.id"
-            class="product-item"
-          >
-            <el-row :gutter="20">
-              <el-col :span="16">
-                <strong
-                  >[{{ shelfProduct.categoryName }}]
-                  {{ shelfProduct.productName }}</strong
+    <!-- 空状态提示 -->
+    <div v-if="shelves.length === 0" class="empty-shelves">
+      <el-empty description="暂无货架，请先添加货架"></el-empty>
+      <!-- 或者自定义样式 -->
+      <!-- <div class="empty-tip">暂无货架，请点击"新增货架"按钮添加</div> -->
+    </div>
+    <div v-else>
+      <div v-for="shelf in shelves" :key="shelf.id" class="shelf-item">
+        <el-card shadow="formed" class="shelf-card">
+          <el-collapse>
+            <el-collapse-item :title="shelf.name" style="font-size: 100px">
+              <el-row class="shelf-actions-row" v-show="showButtons">
+                <el-button
+                  type="primary"
+                  style="border: 1px solid #000"
+                  @click="openAddProductToShelf(shelf)"
+                  >添加商品</el-button
                 >
-              </el-col>
-              <el-col :span="8">
                 <el-button
                   type="warning"
-                  size="mini"
-                  @click="openAddBatchModal(shelfProduct)"
+                  style="border: 1px solid #000"
+                  @click="openEditShelfModal(shelf)"
+                  >修改名称</el-button
                 >
-                  添加批次
-                </el-button>
-              </el-col>
-            </el-row>
+                <el-button
+                  type="danger"
+                  style="border: 1px solid #000"
+                  @click="openDeleteShelf(shelf)"
+                  >删除货架</el-button
+                >
+              </el-row>
+              <div v-if="getProductsInShelf(shelf.id).length > 0">
+                <div
+                  v-for="shelfProduct in getProductsInShelf(shelf.id)"
+                  :key="shelfProduct.id"
+                  class="product-item"
+                >
+                  <el-row :gutter="20">
+                    <el-col :span="16">
+                      <strong
+                        >[{{ shelfProduct.categoryName }}]
+                        {{ shelfProduct.productName }}</strong
+                      >
+                    </el-col>
+                    <!-- 添加批次按钮 - 增加v-show控制 -->
+                    <el-col :span="8" v-show="showButtons">
+                      <el-button
+                        type="warning"
+                        size="mini"
+                        style="border: 1px solid #000"
+                        @click="openAddBatchModal(shelfProduct)"
+                      >
+                        添加批次
+                      </el-button>
+                    </el-col>
+                  </el-row>
 
-            <div class="batch-list">
-              <div v-if="getProductBatches(shelfProduct.id).length === 0">
-                <el-tag type="info">暂无批次记录</el-tag>
-              </div>
-              <div
-                v-for="batch in getProductBatches(shelfProduct.id)"
-                :key="batch.id"
-                class="batch-item"
-              >
-                <el-row :gutter="10">
-                  <el-col :span="24">
-                    <span>{{ batch.produceDate }}</span>
-                    <el-tag
-                      :type="getBatchStatus(batch.expireDate).cls"
-                      size="mini"
-                      class="status-tag"
+                  <div class="batch-list">
+                    <div v-if="getProductBatches(shelfProduct.id).length === 0">
+                      <el-tag type="info">暂无批次记录</el-tag>
+                    </div>
+                    <div
+                      v-for="batch in getProductBatches(shelfProduct.id)"
+                      :key="batch.id"
+                      class="batch-item"
                     >
-                      {{ getBatchStatus(batch.expireDate).text }}
-                    </el-tag>
-                  </el-col>
-                </el-row>
-                <el-row type="flex" justify="space-between" style="margin-top: 10px">
-                  <el-col :span="6">
-                    <el-input-number
-                      v-model="batch.batchnum"
-                      :min="0"
-                      :max="getBatchMaxQty(batch, shelfProduct)"
-                      @change="
-                        updateBatchQty(batch.id, batch.batchnum, shelfProduct)
-                      "
+                      <el-row :gutter="10">
+                        <el-col :span="24">
+                          <span>{{ batch.produceDate }}</span>
+                          <el-tag
+                            :type="getBatchStatus(batch.expireDate).cls"
+                            size="mini"
+                            class="status-tag"
+                          >
+                            {{ getBatchStatus(batch.expireDate).text }}
+                          </el-tag>
+                        </el-col>
+                      </el-row>
+                      <el-row
+                        type="flex"
+                        justify="space-between"
+                        style="margin-top: 10px"
+                      >
+                        <el-col :span="6">
+                          <el-input-number
+                            v-model="batch.batchnum"
+                            :min="0"
+                            :max="getBatchMaxQty(batch, shelfProduct)"
+                            @change="
+                              updateBatchQty(
+                                batch.id,
+                                batch.batchnum,
+                                shelfProduct
+                              )
+                            "
+                            size="mini"
+                            style="width: 180px"
+                          ></el-input-number>
+                        </el-col>
+                        <!-- 删除批次按钮 - 增加v-show控制 -->
+                        <el-col :span="6">
+                          <el-button
+                            size="mini"
+                            type="danger"
+                            v-show="showButtons"
+                            style="border: 1px solid #000"
+                            @click="openDeleteBatchModal(batch, shelfProduct)"
+                          >
+                            删除
+                          </el-button>
+                        </el-col>
+                      </el-row>
+                    </div>
+                  </div>
+
+                  <el-row class="stock-info">
+                    <el-col>
+                      库存总计：当前{{ getProductCurrentQty(shelfProduct) }}件 /
+                      最大{{ shelfProduct.max }}件
+                    </el-col>
+                  </el-row>
+
+                  <!-- 商品操作按钮行 - 增加v-show控制 -->
+                  <el-row class="product-actions" v-show="showButtons">
+                    <el-button
                       size="mini"
-                      style="width: 180px;"
-                    ></el-input-number>
-                  </el-col>
-                  <el-col :span="6"
-                    ><el-button
+                      type="warning"
+                      style="border: 1px solid #000"
+                      @click="
+                        openEditMaxQtyModal(shelfProduct, shelfProduct.max)
+                      "
+                    >
+                      修改最大容量
+                    </el-button>
+                    <el-button
                       size="mini"
                       type="danger"
-                      @click="openDeleteBatchModal(batch, shelfProduct)"
+                      style="border: 1px solid #000"
+                      @click="openDeleteShelfProductModal(shelfProduct)"
                     >
-                      删除
-                    </el-button></el-col
-                  >
-                </el-row>
+                      删除商品
+                    </el-button>
+                  </el-row>
+                </div>
               </div>
-            </div>
-
-            <el-row class="stock-info">
-              <el-col>
-                库存总计：当前{{ getProductCurrentQty(shelfProduct) }}件 /
-                最大{{ shelfProduct.max }}件
-              </el-col>
-            </el-row>
-
-            <el-row class="product-actions">
-              <el-button
-                size="mini"
-                type="warning"
-                @click="openEditMaxQtyModal(shelfProduct, shelfProduct.max)"
-              >
-                修改最大容量
-              </el-button>
-              <el-button
-                size="mini"
-                type="danger"
-                @click="openDeleteShelfProductModal(shelfProduct)"
-              >
-                删除商品
-              </el-button>
-            </el-row>
-          </div>
-        </div>
-        <div v-else class="empty-tip">
-          <el-tag type="info">暂无商品，请点击"添加商品"按钮添加</el-tag>
-        </div>
-      </el-card>
+              <div v-else class="empty-tip">
+                <el-tag type="info">暂无商品，请点击"添加商品"按钮添加</el-tag>
+              </div></el-collapse-item
+            >
+          </el-collapse>
+        </el-card>
+      </div>
     </div>
 
     <el-dialog
@@ -244,6 +285,7 @@
             placeholder="请选择生产日期"
             style="width: 100%"
             value-format="yyyy-MM-dd"
+            :picker-options="datePickerOptions"
           ></el-date-picker>
         </el-form-item>
         <el-form-item label="数量" prop="batchnum">
@@ -354,6 +396,9 @@ export default {
   name: "Shelf",
   data() {
     return {
+      // 核心：默认隐藏所有操作按钮
+      showButtons: false,
+
       id: 0,
       shelf: {},
       batch: {},
@@ -437,8 +482,23 @@ export default {
       "getShelfProductById",
       "getShelfById",
     ]),
+    datePickerOptions() {
+      return {
+        disabledDate(time) {
+          // 只允许选择今天及以前的日期
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          return time.getTime() > today.getTime();
+        },
+      };
+    },
   },
   methods: {
+    // 新增：切换操作按钮显示/隐藏状态
+    toggleButtons() {
+      this.showButtons = !this.showButtons;
+    },
+
     resetForm(refName, formData) {
       this.$nextTick(() => {
         const formRef = this.$refs[refName];
@@ -782,14 +842,9 @@ export default {
   justify-content: center;
 }
 
-/* 顶部操作按钮行 - 添加分隔线 */
-.operation-bar {
-  display: flex;
-  justify-content: flex-end;
-  margin: 15px 0;
-  padding-bottom: 10px; /* 分隔线与按钮的间距 */
-  border-bottom: 1px solid #e6e6e6; /* 浅灰色分隔线 */
-  position: relative;
+/* 切换按钮样式 */
+.toggle-bar {
+  padding: 8px 0;
 }
 
 .shelf-item {
@@ -818,14 +873,13 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding-top: 10px;
-  border-top: 1px solid #e6e6e6; /* 浅灰色分隔线 */
 }
 
 /* 商品行 - 添加分隔线 */
 .product-item {
-  margin-bottom: 20px;
+  margin-top: 20px;
   padding: 10px 0;
-  border-bottom: 1px solid #e6e6e6; /* 商品行底部分隔线 */
+  border-top: 1px solid #837575;
 }
 
 /* 最后一个商品行去掉底部分隔线（可选优化） */
@@ -842,6 +896,8 @@ export default {
   margin: 5px 0;
   padding: 5px;
   background: #f5f5f5;
+  border: 1px solid #e6e6e6;
+
   border-radius: 4px;
 }
 
@@ -863,7 +919,6 @@ export default {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-  /* 移除了原有的 border-top、padding-top、margin-top */
   margin-top: 5px; /* 仅保留少量间距 */
 }
 

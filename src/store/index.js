@@ -168,22 +168,17 @@ const getters = {
       return { cls: 'danger', text: '日期无效' };
     }
 
-    const expireDate = new Date(expireDateStr);
-    // 日期格式校验
-    if (isNaN(expireDate.getTime())) {
-      return { cls: 'danger', text: '日期格式错误' };
-    }
-
+    const [y, m, d] = expireDateStr.split('-').map(Number);
+    const expireDate = new Date(y, m - 1, d); // 本地 0 点
     const now = new Date();
-    const diffTime = expireDate - now;
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
+    now.setHours(0, 0, 0, 0);
+    const diffDays = Math.ceil((expireDate - now) / 86400000);
     if (diffDays < 0) {
       return { cls: 'danger', text: '已过期' };
     } else if (diffDays <= state.expireThreshold) {
       return { cls: 'warning', text: `临期(${diffDays}天)` };
     } else {
-      return { cls: 'success', text: '正常' };
+      return { cls: 'success', text: `正常(${diffDays}天)` };
     }
   },
   // 获取商品批次（按过期日期排序）
@@ -193,12 +188,13 @@ const getters = {
       .sort((a, b) => new Date(a.expireDate) - new Date(b.expireDate));
   },
   // 获取所有临期/过期批次（警告用）
-  getWarnBatches: (state) => {
+  getWarnBatches: (state, getter) => {
     return state.shelfProductBatches.map(batch => {
-      // 计算剩余天数
-      const expireDate = new Date(batch.expireDate);
+      const [y, m, d] = batch.expireDate.split('-').map(Number);
+      const expireDate = new Date(y, m - 1, d); // 本地 0 点
       const now = new Date();
-      const diffDays = Math.ceil((expireDate - now) / (1000 * 60 * 60 * 24));
+      now.setHours(0, 0, 0, 0);
+      const diffDays = Math.ceil((expireDate - now) / 86400000);
 
       // 判定状态
       let status = { cls: 'success', text: '正常' };
@@ -207,12 +203,13 @@ const getters = {
       } else if (diffDays <= state.expireThreshold) {
         status = { cls: 'warning', text: `临期(${diffDays}天)` };
       }
-
-      // 关联商品名称
-      const product = state.products.find(p => p.id === batch.productId) || { name: '未知商品' };
+      const shelfProduct = getter.getShelfProductById(batch.shelfProductId)
+      const product = state.products.find(p => p.id === shelfProduct.productId);
+      const shelf = state.shelves.find(s => s.id === shelfProduct.shelfId);
       return {
         ...batch,
         productName: product.name,
+        shelfName: shelf.name,
         status,
         diffDays
       };
