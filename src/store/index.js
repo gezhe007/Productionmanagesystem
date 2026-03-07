@@ -134,9 +134,9 @@ const getters = {
     }
   },
   // 获取商品批次（按过期日期排序）
-  getProductBatches: (state) => (shelfProduct) => {
+  getProductBatches: (state) => (shelfProductId) => {
     return state.shelfProductBatches
-      .filter((b) => b.shelfProductId === shelfProduct.id)
+      .filter((b) => b.shelfProductId === shelfProductId)
       .sort((a, b) => new Date(a.expireDate) - new Date(b.expireDate));
   },
   // 获取所有临期/过期批次（警告用）

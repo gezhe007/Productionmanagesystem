@@ -46,7 +46,6 @@
               <el-input-number
                 v-model="addQty"
                 :min="0"
-                @input=""
                 style="width: 100px"
               ></el-input-number>
               <div
@@ -134,7 +133,6 @@ import { mapState, mapGetters, mapMutations } from "vuex";
 import {
   calculateExpireDate,
   calculateReplenishQty,
-  getProductsInShelf,
   validateForm,
 } from "@/utils/helpers";
 
@@ -178,33 +176,7 @@ export default {
       "getProductsInShelf",
       "getShelfProductById",
     ]),
-    // 是否有补货数据
-    hasReplenishData() {
-      for (const shelf of this.shelves) {
-        const productsInShelf = getProductsInShelf(
-          shelf,
-          this.shelfProducts,
-          this.products
-        );
-        const filteredProducts = this.filterCat
-          ? productsInShelf.filter((p) => p.category === this.filterCat)
-          : productsInShelf;
-
-        for (const product of filteredProducts) {
-          if (
-            calculateReplenishQty(
-              shelf,
-              product.id,
-              this.shelfBatches,
-              this.shelfProducts
-            ) > 0
-          ) {
-            return true;
-          }
-        }
-      }
-      return false;
-    },
+      
   },
   mounted() {
     // 初始化表单
@@ -235,18 +207,6 @@ export default {
       return this.shelfBatches
         .filter((b) => b.shelf === shelf && b.productId === productId)
         .sort((a, b) => new Date(a.expire) - new Date(b.expire));
-    },
-
-    // 获取货架商品
-    getProductsInShelf(shelf) {
-      const products = getProductsInShelf(
-        shelf,
-        this.shelfProducts,
-        this.products
-      );
-      return this.filterCat
-        ? products.filter((p) => p.category === this.filterCat)
-        : products;
     },
 
     // 计算补货数量
