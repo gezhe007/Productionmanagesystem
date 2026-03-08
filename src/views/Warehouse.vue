@@ -5,7 +5,7 @@
       style="display: flex; justify-content: center; margin-bottom: 20px"
     >
       <h2>仓库管理</h2>
-      <!-- <el-button type="success" @click="CLEAR_ALL_DATA">恢复默认值</el-button> -->
+      <el-button type="success" @click="CLEAR_ALL_DATA">恢复默认值</el-button>
     </div>
 
     <div class="warehouse-module">
@@ -17,7 +17,7 @@
         <el-select
           v-model="filterCatId"
           placeholder="全部"
-          style="width: 150px;border: 1px solid #000;"
+          style="width: 150px; border: 1px solid #000"
         >
           <el-option label="全部" :value="0"></el-option>
           <el-option
@@ -27,7 +27,12 @@
             :value="category.id"
           ></el-option>
         </el-select>
-        <el-button style="border: 1px solid #000;" type="success" @click="openAddModal">添加新商品</el-button>
+        <el-button
+          style="border: 1px solid #000"
+          type="success"
+          @click="openAddModal"
+          >添加新商品</el-button
+        >
       </div>
 
       <div id="product-batch-list" class="product-list-container">
@@ -54,7 +59,7 @@
               <el-button
                 type="warning"
                 size="mini"
-                style="border: 1px solid #000;"
+                style="border: 1px solid #000"
                 @click="openEditModal(product)"
                 >修改</el-button
               >
@@ -64,7 +69,7 @@
                 type="danger"
                 size="mini"
                 @click="openDeleteModal(product)"
-                style="margin-left: 8px;border: 1px solid #000;"
+                style="margin-left: 8px; border: 1px solid #000"
                 >删除</el-button
               ></el-col
             >
@@ -271,9 +276,14 @@ export default {
       "getShelfProductById",
     ]),
     filteredProducts() {
-      // 修复1：筛选逻辑改为基于categoryId
-      if (this.filterCatId === 0) return this.products;
-      return this.products.filter((p) => p.categoryId === this.filterCatId);
+      const sortByIdDesc = (a, b) => b.id - a.id;
+
+      if (this.filterCatId === 0) {
+        return [...this.products].sort(sortByIdDesc);
+      }
+      return this.products
+        .filter((p) => p.categoryId === this.filterCatId)
+        .sort(sortByIdDesc);
     },
   },
   methods: {
