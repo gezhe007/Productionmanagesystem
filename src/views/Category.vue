@@ -17,11 +17,11 @@
 
     <!-- 分类列表 -->
     <div id="category-list">
-      <div v-if="categories.length === 0" class="item">暂无分类，请先添加</div>
+      <div v-if="getCategoriesSorted.length === 0" class="item">暂无分类，请先添加</div>
       <div
         v-else
         class="item"
-        v-for="category in categories"
+        v-for="category in getCategoriesSorted"
         :key="category.id"
       >
         <div
@@ -125,7 +125,7 @@
 
 <script>
 import { mapState, mapMutations } from "vuex";
-import { validateForm } from "@/utils/helpers";
+import { validateForm,calculateId } from "@/utils/helpers";
 export default {
   name: "Category",
   data() {
@@ -147,6 +147,10 @@ export default {
   computed: {
     // 从Vuex全局状态中获取分类和商品数据（自动响应式更新）
     ...mapState(["categories", "products"]),
+    getCategoriesSorted(){
+      const sortByIdDesc = (a, b) => b.id - a.id;
+      return [...this.categories].sort(sortByIdDesc)
+    }
   },
   methods: {
     ...mapMutations([
