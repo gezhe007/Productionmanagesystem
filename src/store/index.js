@@ -212,8 +212,8 @@ const getters = {
         shelfName: shelf.name,
         status,
         diffDays
-      };
-    }).filter(batch => batch.status.cls !== 'success'); // 仅返回临期/过期
+      }
+    }).filter(batch => batch.status.cls !== 'success').sort((a, b) => a.diffDays - b.diffDays); // 仅返回临期/过期
   },
 
   // 根据ID获取商品

@@ -30,7 +30,7 @@
         <!-- 右侧区域：保存按钮 -->
         <el-form-item>
           <el-button
-            style="width: 70px;padding: 8px 10px;border: 1px solid #000;"
+            style="width: 70px; padding: 8px 10px; border: 1px solid #000"
             type="success"
             size="mini"
             icon="el-icon-check"
@@ -56,7 +56,8 @@
         :class="['warn-item', item.cls]"
         :title="item.text"
       >
-        <i :class="['el-icon', item.icon]"></i> {{ item.text }}
+        <i :class="['el-icon', item.icon]"></i> {{ item.name }} | {{ item.status
+        }}<br />{{ item.date }}
       </div>
     </div>
     <div v-else class="no-warning">
@@ -124,7 +125,9 @@ export default {
 
     renderWarningArea() {
       this.warnItems = this.getWarnBatches.map((item) => ({
-        text: `${item.shelfName} → ${item.productName}【${item.produceDate} | ${item.status.text}】`,
+        name: `${item.shelfName} → ${item.productName}`,
+        date: `【${item.produceDate} → ${item.expireDate}】`,
+        status: `${item.status.text}`,
         cls: item.status.cls,
         icon:
           item.status.cls === "danger" ? "el-icon-error" : "el-icon-warning",
@@ -186,23 +189,20 @@ export default {
 
 .warn-list {
   padding: 10px 0;
+  font-size: 8px;
   max-height: 400px;
   overflow-y: auto;
 }
 
 .warn-item {
   padding: 10px 15px;
+  font-size: 8px;
   font-weight: bold;
   border-bottom: 1px dashed #eee;
   border-radius: 4px;
   margin-bottom: 5px;
   background-color: #fafafa;
   transition: all 0.3s;
-}
-
-.warn-item:hover {
-  background-color: #f5f5f5;
-  transform: translateX(5px);
 }
 
 /* 匹配状态的颜色和图标 */
