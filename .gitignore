@@ -33,4 +33,4 @@ coverage/
 *.tmp
 *.temp
 
-assets/screenshots/
+src/assets/screenshots/
