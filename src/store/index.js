@@ -3,6 +3,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import { Storage, STORAGE_KEYS } from '@/utils/storage.js'
+import { calculateExpireDate } from '@/utils/helpers';
 
 Vue.use(Vuex)
 
@@ -26,6 +27,19 @@ const mutations = {
   ADD_PRODUCT(state, data) {
     state.products = [...state.products, data];
     Storage.set(STORAGE_KEYS.PRODUCTS, state.products)
+  },
+  // 更新单个商品（用于商品编辑后更新）
+  UPDATE_PRODUCT(state, updatedProduct) {
+    const index = state.products.findIndex(p => p.id === updatedProduct.id);
+    if (index !== -1) {
+      // 使用 Vue.set 或直接替换数组（注意响应式）
+      state.products = [
+        ...state.products.slice(0, index),
+        updatedProduct,
+        ...state.products.slice(index + 1)
+      ];
+      Storage.set(STORAGE_KEYS.PRODUCTS, state.products);
+    }
   },
   // 更新货架列表
   UPDATE_SHELVES(state, data) {
@@ -139,15 +153,48 @@ const mutations = {
     Object.assign(state, newInitData);
   }
 }
+const actions = {
+  // 更新商品，并同步更新相关批次的过期日期
+  updateProduct({ commit, state }, updatedProduct) {
+    // 1. 更新商品本身
+    commit('UPDATE_PRODUCT', updatedProduct);
+
+    // 2. 找出所有关联此商品的 shelfProduct（货架-商品关联）
+    const relatedShelfProducts = state.shelfProducts.filter(
+      sp => sp.productId === updatedProduct.id
+    );
+    const shelfProductIds = relatedShelfProducts.map(sp => sp.id);
+
+    // 3. 如果没有相关批次，直接返回
+    if (shelfProductIds.length === 0) return;
+
+    // 4. 重新计算这些批次的 expireDate
+    const updatedBatches = state.shelfProductBatches.map(batch => {
+      if (shelfProductIds.includes(batch.shelfProductId)) {
+        // 重新计算过期日期
+        const newExpireDate = calculateExpireDate(
+          batch.produceDate,
+          updatedProduct.period,
+          updatedProduct.unit
+        );
+        // 只有当实际变化时才更新（避免不必要的存储写入）
+        if (newExpireDate !== batch.expireDate) {
+          return { ...batch, expireDate: newExpireDate };
+        }
+      }
+      return batch;
+    });
+
+    // 5. 提交批次更新
+    commit('UPDATE_SHELF_PRODUCT_BATCHES', updatedBatches);
+  }
+};
 // ========== 计算属性（简化组件数据获取） ==========
 const getters = {
-  // 获取临期阈值
   getExpireThreshold: (state) => state.expireThreshold,
 
-  // 获取所有分类
   getAllCategories: (state) => state.categories,
 
-  // 获取指定货架的商品列表（优化版）
   getProductsInShelf: (state, getter) => (shelfId) => {
     return state.shelfProducts
       .filter(sp => sp.shelfId === shelfId)
@@ -275,5 +322,6 @@ const getters = {
 export default new Vuex.Store({
   state,
   mutations,
+  actions,
   getters,
 })

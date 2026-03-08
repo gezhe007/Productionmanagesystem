@@ -1,54 +1,59 @@
 <template>
-  <div>
-    <!-- 页面标题 -->
-    <div class="page-header" style="display: flex; justify-content: center">
-      <h2>分类管理</h2>
-    </div>
-
-    <!-- 操作按钮 -->
-    <div class="function-buttons">
+  <div
+    style="
+      margin: 15px 0;
+      padding: 20px;
+      border: 1px solid #000;
+      border-radius: 8px;
+      background-color: #fff;
+    "
+  >
+    <el-row type="flex" justify="end">
       <el-button
-        type="success"
         style="border: 1px solid #000"
+        type="success"
         @click="openAddModal"
         >新增分类</el-button
       >
-    </div>
+    </el-row>
 
     <!-- 分类列表 -->
     <div id="category-list">
-      <div v-if="getCategoriesSorted.length === 0" class="item">暂无分类，请先添加</div>
+      <div v-if="getCategoriesSorted.length === 0" class="item">
+        暂无分类，请先添加
+      </div>
       <div
         v-else
         class="item"
         v-for="category in getCategoriesSorted"
         :key="category.id"
       >
-        <div
-          style="
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-          "
+        <el-collapse
+          ><el-collapse-item :title="category.name"
+            ><el-row
+              type="flex"
+              justify="space-between"
+              style="margin-top: 20px"
+              ><el-col :span="8"
+                ><el-button
+                  type="warning"
+                  size="mini"
+                  style="border: 1px solid #000"
+                  @click="openEditModal(category)"
+                  >修改</el-button
+                ></el-col
+              ><el-col :span="8">
+                <el-button
+                  type="danger"
+                  size="mini"
+                  style="border: 1px solid #000"
+                  @click="openDeleteModal(category)"
+                  >删除</el-button
+                ></el-col
+              ></el-row
+            ></el-collapse-item
+          ></el-collapse
         >
-          <strong>{{ category.name }}</strong>
-          <div class="shelf-actions">
-            <el-button
-              type="warning"
-              size="mini"
-              style="border: 1px solid #000"
-              @click="openEditModal(category)"
-              >修改</el-button
-            >
-            <el-button
-              type="danger"
-              size="mini"
-              style="border: 1px solid #000"
-              @click="openDeleteModal(category)"
-              >删除</el-button
-            >
-          </div>
-        </div>
       </div>
     </div>
 
@@ -56,7 +61,7 @@
     <el-dialog
       title="新增分类"
       :visible.sync="addModalVisible"
-      width="380px"
+      width="320px"
       style="border: 1px solid #000"
       @close="resetAddForm"
     >
@@ -83,7 +88,7 @@
     <el-dialog
       title="修改分类"
       :visible.sync="editModalVisible"
-      width="380px"
+      width="320px"
       @close="resetEditForm"
     >
       <el-form
@@ -106,7 +111,7 @@
     </el-dialog>
     <el-dialog
       :visible.sync="deleteModalVisible"
-      width="350px"
+      width="320px"
       @close="deleteModalVisible = false"
       ><div style="margin: 10px 30px; font-size: 17px; text-align: center">
         <strong>确定删除分类【{{ category.name }}】?</strong>
@@ -125,7 +130,7 @@
 
 <script>
 import { mapState, mapMutations } from "vuex";
-import { validateForm,calculateId } from "@/utils/helpers";
+import { validateForm, calculateId } from "@/utils/helpers";
 export default {
   name: "Category",
   data() {
@@ -147,10 +152,10 @@ export default {
   computed: {
     // 从Vuex全局状态中获取分类和商品数据（自动响应式更新）
     ...mapState(["categories", "products"]),
-    getCategoriesSorted(){
+    getCategoriesSorted() {
       const sortByIdDesc = (a, b) => b.id - a.id;
-      return [...this.categories].sort(sortByIdDesc)
-    }
+      return [...this.categories].sort(sortByIdDesc);
+    },
   },
   methods: {
     ...mapMutations([
@@ -188,8 +193,10 @@ export default {
           this.$message.error(validateResult.message);
           return;
         }
-
-        if (this.categories.includes(categoryName)) {
+        const exists = this.categories.some(
+          (c) => c.name.trim().toLowerCase() === categoryName.toLowerCase()
+        );
+        if (exists) {
           this.$message.error("该分类已存在");
           return;
         }
@@ -232,8 +239,10 @@ export default {
           this.$message.error(validateResult.message);
           return;
         }
-
-        if (this.categories.includes(newName)) {
+        const exists = this.categories.some(
+          (c) => c.name.trim().toLowerCase() === newName.toLowerCase()
+        );
+        if (exists) {
           this.$message.error("该分类已存在");
           return;
         }
@@ -277,33 +286,11 @@ export default {
 </script>
 
 <style scoped>
-.back-btn {
-  margin-left: 10px;
-  font-size: 14px;
-}
-
-.function-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin: 20px 0;
-  padding: 15px;
-  background: #f5f5f5;
-  border: 1px solid #000;
-  border-radius: 8px;
-}
-
 .item {
   margin: 10px 0;
-  padding: 12px;
-  border: 1px solid #000;
+  padding: 15px;
+  border: 1px solid #000000;
   border-radius: 8px;
-  background: #fff;
-}
-
-.shelf-actions {
-  display: flex;
-  align-items: center;
-  gap: 5px;
+  transition: all 0.2s ease;
 }
 </style>

@@ -34,26 +34,33 @@
               :picker-options="datePickerOptions"
               @change="handleDateChange"
             ></el-date-picker>
-            <br />
-            补货数量：
-            <el-input-number
-              v-model.number="localForm.batchnum"
-              :min="0"
-              :max="newBatchMaxQty"
-              placeholder="0"
-              class="qty-input"
-              @change="handleNumberChange"
-            ></el-input-number>
-            <el-button
-              type="primary"
-              size="mini"
-              style="border: 1px solid #000"
-              @click="handleAdd"
-              :disabled="!localForm.produceDate || localForm.batchnum <= 0"
-              class="add-btn"
-            >
-              添加这批
-            </el-button>
+            <el-row> 补货数量： </el-row>
+            <el-row type="flex" justify="space-between"
+              ><el-col :span="8"
+                ><el-input-number
+                  v-model.number="localForm.batchnum"
+                  :min="0"
+                  :max="newBatchMaxQty"
+                  placeholder="0"
+                  size="mini"
+                  style="width: 140px"
+                  class="qty-input"
+                  @change="handleNumberChange"
+                ></el-input-number>
+              </el-col>
+              <el-col :span="8"
+                ><el-button
+                  type="primary"
+                  size="mini"
+                  style="margin-left: 10px; border: 1px solid #000; width: 60px"
+                  @click="handleAdd"
+                  :disabled="!localForm.produceDate || localForm.batchnum <= 0"
+                  class="add-btn"
+                >
+                  添加
+                </el-button></el-col
+              >
+            </el-row>
           </div>
         </el-collapse-item>
       </el-collapse>

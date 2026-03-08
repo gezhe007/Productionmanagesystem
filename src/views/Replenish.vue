@@ -36,7 +36,7 @@
         :loading="confirmLoading"
         :disabled="!hasReplenishData"
       >
-        确认全部补货上货架
+        确认补货
       </el-button>
     </div>
   </div>
@@ -268,6 +268,8 @@ export default {
   flex: 1;
   padding: 12px 0;
   font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid #000;
 }
 
 /* 新增：商品卡片黑色边框 */

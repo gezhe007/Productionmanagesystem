@@ -171,6 +171,8 @@ export default {
 
 .threshold-card {
   margin-bottom: 20px;
+  border: 1px solid #000;
+  border-radius: 8px;
 }
 
 .threshold-form {
@@ -185,6 +187,7 @@ export default {
 .warning-card {
   margin-bottom: 20px;
   border: 1px solid #000;
+  border-radius: 8px;
 }
 
 .warn-list {

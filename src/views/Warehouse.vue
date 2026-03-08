@@ -1,39 +1,31 @@
 <template>
   <div>
-    <div
-      class="page-header"
-      style="display: flex; justify-content: center; margin-bottom: 20px"
-    >
-      <h2>仓库管理</h2>
-      <!-- <el-button type="success" @click="CLEAR_ALL_DATA">恢复默认值</el-button> -->
-    </div>
-
+    <el-button type="success" @click="CLEAR_ALL_DATA">恢复默认值</el-button>
     <div class="warehouse-module">
-      <div class="filter-group">
-        <span style="width: 100px; font-size: 16px; font-weight: 500"
-          >筛选分类：</span
+      <el-row type="flex" justify="space-between">
+        <el-col :span="12">
+          <el-select
+            v-model="filterCatId"
+            placeholder="全部"
+            style="width: 130px; border: 1px solid #000; border-radius: 4px"
+          >
+            <el-option label="全部" :value="0"></el-option>
+            <el-option
+              v-for="category in categories"
+              :key="category.id"
+              :label="category.name"
+              :value="category.id"
+            ></el-option> </el-select
+        ></el-col>
+        <el-col :span="10"
+          ><el-button
+            style="border: 1px solid #000"
+            type="success"
+            @click="openAddModal"
+            >添加新商品</el-button
+          ></el-col
         >
-        <!-- 修复1：筛选下拉框绑定分类ID（数字），而非整个对象 -->
-        <el-select
-          v-model="filterCatId"
-          placeholder="全部"
-          style="width: 150px; border: 1px solid #000"
-        >
-          <el-option label="全部" :value="0"></el-option>
-          <el-option
-            v-for="category in categories"
-            :key="category.id"
-            :label="category.name"
-            :value="category.id"
-          ></el-option>
-        </el-select>
-        <el-button
-          style="border: 1px solid #000"
-          type="success"
-          @click="openAddModal"
-          >添加新商品</el-button
-        >
-      </div>
+      </el-row>
 
       <div id="product-batch-list" class="product-list-container">
         <div v-if="filteredProducts.length === 0" class="empty-item">
@@ -45,35 +37,33 @@
           v-for="product in filteredProducts"
           :key="product.id"
         >
-          <el-row type="flex" justify="space-between">
-            <el-col :span="10">
-              <strong
-                >[{{ getCategoryById(product.categoryId).name }}]
-                {{ product.name }}</strong
-              >
-              <div style="font-size: 12px; color: #666; margin-top: 4px">
-                标准保质期：{{ product.period }}{{ product.unit }}
+          <el-collapse>
+            <el-collapse-item :title="getProductsTitle(product)">
+              <div style="margin-bottom: 10px">
+                保质期：{{ product.period }} {{ product.unit }}
               </div>
-            </el-col>
-            <el-col :span="1">
-              <el-button
-                type="warning"
-                size="mini"
-                style="border: 1px solid #000"
-                @click="openEditModal(product)"
-                >修改</el-button
-              >
-            </el-col>
-            <el-col :span="6">
-              <el-button
-                type="danger"
-                size="mini"
-                @click="openDeleteModal(product)"
-                style="margin-left: 8px; border: 1px solid #000"
-                >删除</el-button
-              ></el-col
+              <el-row type="flex" justify="space-between">
+                <el-col :span="8">
+                  <el-button
+                    type="warning"
+                    size="mini"
+                    style="border: 1px solid #000"
+                    @click="openEditModal(product)"
+                    >修改</el-button
+                  >
+                </el-col>
+                <el-col :span="7">
+                  <el-button
+                    type="danger"
+                    size="mini"
+                    @click="openDeleteModal(product)"
+                    style="margin-left: 8px; border: 1px solid #000"
+                    >删除</el-button
+                  ></el-col
+                >
+              </el-row></el-collapse-item
             >
-          </el-row>
+          </el-collapse>
         </div>
       </div>
     </div>
@@ -81,7 +71,8 @@
     <el-dialog
       title="添加新商品"
       :visible.sync="addModalVisible"
-      width="380px"
+      width="320px"
+      style="text-align: center"
       @close="resetAddForm"
     >
       <el-form
@@ -106,16 +97,18 @@
             ></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="标准保质期" prop="period">
+        <el-form-item label="保质期" prop="period">
           <el-input-number
             v-model="product.period"
             :min="1"
-            style="width: 150px"
+            style="width: 100px"
+            size="mini"
             placeholder="数字"
           ></el-input-number>
           <el-select
             v-model="product.unit"
-            style="margin-left: 10px; width: 80px"
+            size="mini"
+            style="margin-left: 10px; width: 60px"
           >
             <el-option label="天" value="天"></el-option>
             <el-option label="月" value="月"></el-option>
@@ -134,7 +127,8 @@
     <el-dialog
       title="修改商品"
       :visible.sync="editModalVisible"
-      width="380px"
+      width="320px"
+      style="text-align: center"
       @close="resetEditForm"
     >
       <el-form
@@ -160,16 +154,18 @@
             ></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="标准保质期" prop="period">
+        <el-form-item label="保质期" prop="period">
           <el-input-number
             v-model="product.period"
             :min="1"
-            style="width: 150px"
+            style="width: 100px"
+            size="mini"
             placeholder="数字"
           ></el-input-number>
           <el-select
             v-model="product.unit"
-            style="margin-left: 10px; width: 80px"
+            size="mini"
+            style="margin-left: 10px; width: 60px"
           >
             <el-option label="天" value="天"></el-option>
             <el-option label="月" value="月"></el-option>
@@ -186,7 +182,7 @@
     </el-dialog>
     <el-dialog
       :visible.sync="deleteModalVisible"
-      width="350px"
+      width="320px"
       @close="deleteModalVisible = false"
       ><div style="margin: 10px 30px; font-size: 17px">
         <strong>确定删除商品【{{ product.name }}】?</strong>
@@ -205,7 +201,7 @@
 </template>
 
 <script>
-import { mapMutations, mapState, mapGetters } from "vuex";
+import { mapMutations, mapState, mapGetters, mapActions } from "vuex";
 import {
   calculateId,
   calculateExpireDate,
@@ -294,7 +290,11 @@ export default {
       "UPDATE_SHELF_PRODUCTS",
       "UPDATE_SHELF_PRODUCT_BATCHES",
     ]),
-
+    ...mapActions(["updateProduct"]),
+    getProductsTitle(product) {
+      return `[${this.getCategoryById(product.categoryId).name}]
+                ${product.name}`;
+    },
     openAddModal() {
       this.resetAddForm();
       this.addModalVisible = true;
@@ -411,13 +411,6 @@ export default {
           period: this.product.period,
           unit: this.product.unit,
         };
-        const newProducts = this.products.map((product) => {
-          if (product.id === productId) {
-            return newProduct;
-          }
-          return product;
-        });
-
         const newShelfProductBatches = this.shelfProductBatches.map((batch) => {
           if (
             this.getShelfProductById(batch.shelfProductId).productId ===
@@ -431,14 +424,13 @@ export default {
             );
             return {
               ...batch,
-              expire: expireDateStr,
+              expireDate: expireDateStr,
             };
           }
           return batch;
         });
 
-        this.UPDATE_PRODUCTS(newProducts);
-        this.UPDATE_SHELF_PRODUCT_BATCHES(newShelfProductBatches);
+        this.updateProduct(newProduct);
 
         this.$message.success("商品修改成功，已同步更新所有关联批次信息");
         this.editModalVisible = false;
@@ -476,14 +468,6 @@ export default {
   background-color: #fff;
 }
 
-.filter-group {
-  margin: 10px 0 20px 0;
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  flex-wrap: wrap;
-}
-
 .product-list-container {
   width: 100%;
 }
@@ -491,9 +475,8 @@ export default {
 .product-batch-item {
   margin: 10px 0;
   padding: 15px;
-  border: 1px solid #e8e8e8;
+  border: 1px solid #000000;
   border-radius: 8px;
-  background: #fafafa;
   transition: all 0.2s ease;
 }
 .product-info {
