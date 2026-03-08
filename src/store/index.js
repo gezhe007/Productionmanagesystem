@@ -208,7 +208,7 @@ const getters = {
           period: product.period,
           unit: product.unit
         };
-      });
+      }).sort((a,b)=>b.id-a.id);
   },
   getBatchStatus: (state) => (expireDateStr) => {
     if (!expireDateStr) {

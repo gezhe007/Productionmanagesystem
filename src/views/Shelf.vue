@@ -33,7 +33,7 @@
       <!-- <div class="empty-tip">暂无货架，请点击"新增货架"按钮添加</div> -->
     </div>
     <div v-else>
-      <div v-for="shelf in shelves" :key="shelf.id" class="shelf-item">
+      <div v-for="shelf in getShelvesSorted" :key="shelf.id" class="shelf-item">
         <el-card shadow="formed" class="shelf-card">
           <el-collapse>
             <el-collapse-item :title="shelf.name" style="font-size: 100px">
@@ -179,9 +179,9 @@
                   </el-row>
                 </div>
               </div>
-              <div v-else class="empty-tip">
+              <el-row v-else style="margin-top: 30px;text-align: center;">
                 <el-tag type="info">暂无商品，请点击"添加商品"按钮添加</el-tag>
-              </div></el-collapse-item
+              </el-row></el-collapse-item
             >
           </el-collapse>
         </el-card>
@@ -500,6 +500,10 @@ export default {
       "getShelfProductById",
       "getShelfById",
     ]),
+    getShelvesSorted() {
+      const sortByIdDesc = (a, b) => b.id - a.id;
+      return [...this.shelves].sort(sortByIdDesc);
+    },
     datePickerOptions() {
       return {
         disabledDate(time) {
@@ -512,11 +516,9 @@ export default {
     },
   },
   methods: {
-    // 新增：切换操作按钮显示/隐藏状态
     toggleButtons() {
       this.showButtons = !this.showButtons;
     },
-
     resetForm(refName, formData) {
       this.$nextTick(() => {
         const formRef = this.$refs[refName];
@@ -901,11 +903,6 @@ export default {
 
 .status-tag {
   margin-left: 8px;
-}
-
-.empty-tip {
-  text-align: center;
-  padding: 10px;
 }
 
 .unit-text {
