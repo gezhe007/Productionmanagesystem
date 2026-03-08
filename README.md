@@ -181,19 +181,19 @@ src/
 
 ## 📸 截图
 ### 首页
-![首页](assets/screenshots/home.png)
+![首页](src/assets/screenshots/home.png)
 
 ### 货架管理
-![货架管理](assets/screenshots/shelf.png)
+![货架管理](src/assets/screenshots/shelf.png)
 
 ### 补货建议
-![补货建议](assets/screenshots/replenish.png)
+![补货建议](src/assets/screenshots/replenish.png)
 
 ### 仓库管理
-![仓库管理](assets/screenshots/warehouse.png)
+![仓库管理](src/assets/screenshots/warehouse.png)
 
 ### 分类管理
-![分类管理](assets/screenshots/category.png)
+![分类管理](src/assets/screenshots/category.png)
 
 ## 🤝 贡献
 欢迎提交 Issue 或 Pull Request。如有问题，请通过 GitHub Issues 反馈。
