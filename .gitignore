@@ -33,14 +33,8 @@ coverage/
 *.tmp
 *.temp
 
-src/assets/screenshots/
 src/assets/screenshots/category.png
 src/assets/screenshots/home.png
 src/assets/screenshots/replenish.png
 src/assets/screenshots/shelf.png
 src/assets/screenshots/warehouse.png
-src/assets/screenshots/warehouse.png
-src/assets/screenshots/shelf.png
-src/assets/screenshots/replenish.png
-src/assets/screenshots/home.png
-src/assets/screenshots/category.png
