@@ -3,7 +3,7 @@
     <!-- <el-button type="success" @click="CLEAR_ALL_DATA">恢复默认值</el-button> -->
     <div class="warehouse-module">
       <el-row type="flex" justify="space-between">
-        <el-col :span="12">
+        <el-col :span="5">
           <el-select
             v-model="filterCatId"
             placeholder="全部"
@@ -17,9 +17,9 @@
               :value="category.id"
             ></el-option> </el-select
         ></el-col>
-        <el-col :span="10"
+        <el-col :span="8.5"
           ><el-button
-            style="border: 1px solid #000"
+            style="border: 1px solid #000;"
             type="success"
             @click="openAddModal"
             >添加新商品</el-button
