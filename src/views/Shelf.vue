@@ -255,7 +255,7 @@
             style="width: 100%"
           >
             <el-option
-              v-for="product in products"
+              v-for="product in getUnaddedProductsByShelfId(shelf.id)"
               :key="product.id"
               :label="`[${getCategoryById(product.categoryId).name}] ${
                 product.name
@@ -436,9 +436,7 @@ export default {
       addProductModalVisible: false,
       addProductForm: { productId: "", max: 10 },
       addProductRules: {
-        productId: [
-          { required: true, message: "请选择商品", trigger: "blur" },
-        ],
+        productId: [{ required: true, message: "请选择商品", trigger: "blur" }],
         max: [
           { required: true, message: "请输入最大容量", trigger: "blur" },
           {
@@ -537,7 +535,29 @@ export default {
         });
       });
     },
+    getUnaddedProductsByShelfId(shelfId) {
+      // 1. 边界校验：货架ID无效时返回所有商品（避免逻辑异常）
+      if (!shelfId || typeof shelfId !== "number") {
+        return [...this.products]; // 返回所有商品的副本，避免原数组被修改
+      }
 
+      // 2. 筛选：该货架下已添加的所有 shelfProducts 记录
+      const addedShelfProducts = this.shelfProducts.filter(
+        (sp) => sp.shelfId === shelfId
+      );
+
+      // 3. 提取：已添加商品的 productId（去重，避免重复过滤）
+      const addedProductIds = [
+        ...new Set(addedShelfProducts.map((sp) => sp.productId)),
+      ];
+
+      // 4. 过滤：从所有商品中排除已添加的，得到未添加的商品列表
+      const unaddedProducts = this.products.filter((product) => {
+        return !addedProductIds.includes(product.id);
+      });
+
+      return unaddedProducts;
+    },
     checkShelfNameExist(name) {
       return this.shelves.some((s) => s.name === name);
     },
@@ -707,7 +727,10 @@ export default {
         }
 
         const isBatchExist = this.shelfProductBatches.some((b) => {
-          return b.produceDate === produceDate && b.shelfProductId === shelfProduct.id;
+          return (
+            b.produceDate === produceDate &&
+            b.shelfProductId === shelfProduct.id
+          );
         });
         if (isBatchExist) {
           this.$message.error(`该生产日期(${produceDate})的批次已存在`);
