@@ -1,7 +1,7 @@
 <template>
   <div class="replenish-page">
     <div class="content-container">
-      <div v-if="!hasReplenishData" class="empty-tip">无需补货</div>
+      <el-empty v-if="!hasReplenishData">无需补货</el-empty>
 
       <template v-else>
         <div
@@ -252,12 +252,6 @@ export default {
 <style scoped>
 .content-container {
   min-height: 200px;
-}
-.empty-tip {
-  text-align: center;
-  padding: 50px 0;
-  color: #999;
-  font-size: 16px;
 }
 .btn-group {
   margin-top: 20px;
