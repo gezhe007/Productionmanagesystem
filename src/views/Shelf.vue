@@ -260,9 +260,7 @@
             <el-option
               v-for="product in getUnaddedProductsByShelfId(shelf.id)"
               :key="product.id"
-              :label="`[${getCategoryById(product.categoryId).name}] ${
-                product.name
-              } (保质期：${product.period}${product.unit})`"
+              :label="`${product.name}`"
               :value="product.id"
             ></el-option>
           </el-select>
