@@ -11,7 +11,6 @@
         >
           <ReplenishItem
             :shelf-product="item.shelfProduct"
-            :shelf-name="item.shelfName"
             :product-name="item.productName"
             :category-name="item.categoryName"
             :replenish-qty="item.replenishQty"
@@ -106,7 +105,6 @@ export default {
 
           items.push({
             shelfProduct: sp,
-            shelfName: shelf.name,
             productName: sp.productName,
             categoryName: sp.categoryName,
             replenishQty,
