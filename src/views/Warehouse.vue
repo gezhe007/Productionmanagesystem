@@ -1,6 +1,6 @@
 <template>
   <div>
-    <el-button type="success" @click="CLEAR_ALL_DATA">恢复默认值</el-button>
+    <!-- <el-button type="success" @click="CLEAR_ALL_DATA">恢复默认值</el-button> -->
     <div class="warehouse-module">
       <el-row type="flex" justify="space-between">
         <el-col :span="5">

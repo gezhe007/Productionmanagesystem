@@ -1,7 +1,7 @@
 <template>
   <div class="replenish-page">
     <div class="content-container">
-      <el-empty v-if="!hasReplenishData">无需补货</el-empty>
+      <div v-if="!hasReplenishData" class="empty-tip">无需补货</div>
 
       <template v-else>
         <div
@@ -13,6 +13,7 @@
             :shelf-product="item.shelfProduct"
             :shelf-name="item.shelfName"
             :product-name="item.productName"
+            :category-name="item.categoryName"
             :replenish-qty="item.replenishQty"
             :total-after-qty="item.totalAfterQty"
             :preview-color="item.previewColor"
@@ -107,6 +108,7 @@ export default {
             shelfProduct: sp,
             shelfName: shelf.name,
             productName: sp.productName,
+            categoryName: sp.categoryName,
             replenishQty,
             totalAfterQty,
             previewColor: totalAfterQty > sp.max ? "#f44336" : "#007aff",
@@ -250,6 +252,12 @@ export default {
 <style scoped>
 .content-container {
   min-height: 200px;
+}
+.empty-tip {
+  text-align: center;
+  padding: 50px 0;
+  color: #999;
+  font-size: 16px;
 }
 .btn-group {
   margin-top: 20px;
