@@ -179,7 +179,7 @@
                   </el-row>
                 </div>
               </div>
-              <el-row v-else style="margin-top: 30px;text-align: center;">
+              <el-row v-else style="margin-top: 30px; text-align: center">
                 <el-tag type="info">暂无商品，请点击"添加商品"按钮添加</el-tag>
               </el-row></el-collapse-item
             >
@@ -416,7 +416,6 @@ export default {
     return {
       // 核心：默认隐藏所有操作按钮
       showButtons: false,
-      currentShelfProductId: null,
       id: 0,
       shelf: {},
       batch: {},
@@ -671,8 +670,7 @@ export default {
     },
 
     openAddBatchModal(shelfProduct) {
-      this.currentShelfProductId = shelfProduct.id;
-      this.shelfProduct = { ...shelfProduct }; // ✅ 保存副本，供弹窗显示
+      this.shelfProduct = { ...shelfProduct };
       this.addBatchModalVisible = true;
       this.resetForm("addBatchFormRef", this.addBatchForm);
       const allBatches = this.getProductBatches(shelfProduct.id) || [];
@@ -687,9 +685,7 @@ export default {
     saveAddBatch() {
       this.$refs.addBatchFormRef.validate((valid) => {
         if (!valid) return;
-        const shelfProduct = this.getShelfProductById(
-          this.currentShelfProductId
-        );
+        const shelfProduct = this.shelfProduct;
         if (!shelfProduct) {
           this.$message.error("商品信息不存在");
           return;
@@ -710,11 +706,9 @@ export default {
           return;
         }
 
-        const isBatchExist = this.shelfProductBatches.some(
-          (b) =>
-            b.produceDate === produceDate &&
-            b.shelfProdUCTId === shelfProduct.id
-        );
+        const isBatchExist = this.shelfProductBatches.some((b) => {
+          return b.produceDate === produceDate && b.shelfProductId === shelfProduct.id;
+        });
         if (isBatchExist) {
           this.$message.error(`该生产日期(${produceDate})的批次已存在`);
           return;
