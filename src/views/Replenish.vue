@@ -118,7 +118,7 @@ export default {
           });
         });
       });
-      return items;
+      return items.sort((a,b)=>b.shelfProduct.id-a.shelfProduct.id);
     },
 
     hasReplenishData() {
