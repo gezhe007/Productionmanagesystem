@@ -19,7 +19,7 @@
         ></el-col>
         <el-col :span="8.5"
           ><el-button
-            style="border: 1px solid #000;"
+            style="border: 1px solid #000"
             type="success"
             @click="openAddModal"
             >添加新商品</el-button
@@ -292,8 +292,7 @@ export default {
     ]),
     ...mapActions(["updateProduct"]),
     getProductsTitle(product) {
-      return `[${this.getCategoryById(product.categoryId).name}]
-                ${product.name}`;
+      return `${product.name}`;
     },
     openAddModal() {
       this.resetAddForm();
@@ -447,7 +446,8 @@ export default {
         (sp) => sp.productId !== productId
       );
       const newShelfProductBatches = this.shelfProductBatches.filter(
-        (b) => this.getShelfProductById(b.shelfProductId).productId !== productId
+        (b) =>
+          this.getShelfProductById(b.shelfProductId).productId !== productId
       );
       this.UPDATE_PRODUCTS(newProducts);
       this.UPDATE_SHELF_PRODUCTS(newShelfProducts);
