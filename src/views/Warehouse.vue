@@ -447,7 +447,7 @@ export default {
         (sp) => sp.productId !== productId
       );
       const newShelfProductBatches = this.shelfProductBatches.filter(
-        (b) => b.productId !== productId
+        (b) => this.getShelfProductById(b.shelfProductId).productId !== productId
       );
       this.UPDATE_PRODUCTS(newProducts);
       this.UPDATE_SHELF_PRODUCTS(newShelfProducts);
