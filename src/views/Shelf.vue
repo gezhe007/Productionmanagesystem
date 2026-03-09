@@ -437,7 +437,7 @@ export default {
       addProductForm: { productId: "", max: 10 },
       addProductRules: {
         productId: [
-          { required: true, message: "请选择商品", trigger: "change" },
+          { required: true, message: "请选择商品", trigger: "blur" },
         ],
         max: [
           { required: true, message: "请输入最大容量", trigger: "blur" },
@@ -453,7 +453,7 @@ export default {
       addBatchForm: { produceDate: "", batchnum: 1 },
       addBatchRules: {
         produceDate: [
-          { required: true, message: "请选择生产日期", trigger: "change" },
+          { required: true, message: "请选择生产日期", trigger: "blur" },
         ],
         batchnum: [
           { required: true, message: "请输入数量", trigger: "blur" },
