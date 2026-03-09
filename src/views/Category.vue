@@ -1,7 +1,6 @@
 <template>
   <div
     style="
-      margin: 15px 0;
       padding: 20px;
       border: 1px solid #000;
       border-radius: 8px;
@@ -18,7 +17,7 @@
     </el-row>
 
     <!-- 分类列表 -->
-    <div id="category-list">
+    <div>
       <div v-if="getCategoriesSorted.length === 0" class="item">
         暂无分类，请先添加
       </div>

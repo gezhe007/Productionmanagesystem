@@ -461,7 +461,6 @@ export default {
 
 <style scoped>
 .warehouse-module {
-  margin: 15px 0;
   padding: 20px;
   border: 1px solid #000;
   border-radius: 8px;
