@@ -1,14 +1,13 @@
 <template>
   <div>
-    <h4 class="product-title">
-      [{{ categoryName }}] {{ shelfName }} → {{ productName }} （需补
-      {{ replenishQty }} 件）
-    </h4>
+    <div class="product-title">
+      <el-row>{{ shelfName }} ➡ {{ categoryName }} ➡ {{ productName }}</el-row>
+    </div>
 
     <div class="stock-preview" :style="{ color: previewColor }">
-      补货后库存：{{ totalAfterQty }}件 / 此货架该商品最大容量：{{
-        shelfProduct.max
-      }}件
+      补货后库存：{{ totalAfterQty }} / {{ shelfProduct.max }} ➡ 还需补
+      {{ replenishQty }}
+      件
       <span v-if="totalAfterQty > shelfProduct.max" class="warning-text">
         （超出此货架该商品最大容量）
       </span>
@@ -192,8 +191,6 @@ export default {
   font-size: 16px;
   font-weight: 600;
   color: #2c3e50;
-  display: flex;
-  align-items: center;
   gap: 8px;
   flex-wrap: wrap;
 }

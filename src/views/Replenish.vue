@@ -118,7 +118,23 @@ export default {
           });
         });
       });
-      return items.sort((a,b)=>b.shelfProduct.id-a.shelfProduct.id);
+      // 核心修改：先按货架ID升序 → 再按分类名称中文排序 → 最后按货架商品ID降序
+      return items.sort((a, b) => {
+        // 1. 第一优先级：货架ID（保证同一货架的商品排在一起）
+        if (a.shelfProduct.shelfId !== b.shelfProduct.shelfId) {
+          return a.shelfProduct.shelfId - b.shelfProduct.shelfId;
+        }
+        // 2. 第二优先级：分类名称（中文拼音排序，同一货架内同分类排一起）
+        const categoryCompare = a.categoryName.localeCompare(
+          b.categoryName,
+          "zh-CN"
+        );
+        if (categoryCompare !== 0) {
+          return categoryCompare;
+        }
+        // 3. 第三优先级：货架商品ID降序（保留原有排序逻辑）
+        return b.shelfProduct.id - a.shelfProduct.id;
+      });
     },
 
     hasReplenishData() {
