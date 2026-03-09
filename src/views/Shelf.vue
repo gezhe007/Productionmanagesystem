@@ -8,32 +8,28 @@
     "
   >
     <!-- 新增：显示/隐藏操作按钮的切换按钮 -->
-    <el-row class="toggle-bar" style="margin-bottom: 15px; text-align: right">
+    <el-row style="text-align: right;margin-bottom: 2px;">
       <el-button
         type="success"
-        style="border: 1px solid #000"
+        style="border: 1px solid #000;margin-bottom: 2px;"
         v-show="showButtons"
         @click="openAddShelfModal"
         >新增货架</el-button
       >
       <el-button
         type="primary"
-        style="border: 1px solid #000"
+        style="margin-bottom: 2px;border: 1px solid #000"
         icon="el-icon-s-tools"
         @click="toggleButtons"
       >
         {{ showButtons ? "隐藏" : "显示" }}
       </el-button>
     </el-row>
-    <!-- 空状态提示 -->
     <div v-if="shelves.length === 0" class="empty-shelves">
       <el-empty description="暂无货架，请先添加货架"></el-empty>
-      <!-- 或者自定义样式 -->
-      <!-- <div class="empty-tip">暂无货架，请点击"新增货架"按钮添加</div> -->
     </div>
     <div v-else>
       <div v-for="shelf in getShelvesSorted" :key="shelf.id" class="shelf-item">
-        <el-card shadow="formed" class="shelf-card">
           <el-collapse>
             <el-collapse-item :title="shelf.name" style="font-size: 100px">
               <el-row type="flex" justify="space-between" v-show="showButtons">
@@ -183,7 +179,6 @@
               </el-row></el-collapse-item
             >
           </el-collapse>
-        </el-card>
       </div>
     </div>
 
@@ -892,12 +887,11 @@ export default {
 
 <style scoped>
 .shelf-item {
-  margin-bottom: 15px;
-}
-
-.shelf-card {
-  border: 1px solid #000;
+  margin: 10px 0;
+  padding: 15px;
+  border: 1px solid #000000;
   border-radius: 8px;
+  transition: all 0.2s ease;
 }
 
 /* 商品行 - 添加分隔线 */

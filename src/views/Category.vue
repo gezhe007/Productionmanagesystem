@@ -9,7 +9,7 @@
   >
     <el-row type="flex" justify="end">
       <el-button
-        style="border: 1px solid #000"
+        style="border: 1px solid #000;margin-bottom: 2px;"
         type="success"
         @click="openAddModal"
         >新增分类</el-button
