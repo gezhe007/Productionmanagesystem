@@ -1,8 +1,7 @@
 <template>
   <div>
     <h4 class="product-title">
-      [{{ categoryName }}] {{ shelfName }} → {{ productName }} （需补
-      {{ replenishQty }} 件）
+      {{ shelfName }} → {{ productName }} （需补 {{ replenishQty }} 件）
     </h4>
 
     <div class="stock-preview" :style="{ color: previewColor }">
@@ -92,7 +91,6 @@ export default {
     shelfProduct: { type: Object, required: true },
     shelfName: { type: String, required: true },
     productName: { type: String, required: true },
-    categoryName: { type: String, required: true },
     replenishQty: { type: Number, required: true },
     totalAfterQty: { type: Number, required: true },
     previewColor: { type: String, required: true },
