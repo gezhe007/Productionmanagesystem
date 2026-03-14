@@ -3,8 +3,10 @@ import App from './App.vue'
 import router from './router'
 import store from './store'
 
-import { Button, Input, Collapse, DatePicker, InputNumber, Dialog, Form, FormItem, Card, Alert, Row, Col, Empty, Tag, Select, Option, CollapseItem,Message } from 'element-ui'
+import { Radio,RadioGroup,Button, Input, Collapse, DatePicker, InputNumber, Dialog, Form, FormItem, Card, Alert, Row, Col, Empty, Tag, Select, Option, CollapseItem,Message } from 'element-ui'
 Vue.component(Button.name, Button)
+Vue.component(Radio.name, Radio)
+Vue.component(RadioGroup.name, RadioGroup)
 Vue.component(Input.name, Input)
 Vue.component(Collapse.name, Collapse)
 Vue.component(DatePicker.name, DatePicker)

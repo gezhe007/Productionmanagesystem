@@ -1,6 +1,5 @@
 <template>
   <div>
-    <!-- <el-button type="success" @click="CLEAR_ALL_DATA">恢复默认值</el-button> -->
     <div class="warehouse-module">
       <el-row type="flex" justify="space-between">
         <el-col :span="5">
@@ -67,6 +66,32 @@
         </div>
       </div>
     </div>
+    <el-card style="margin-top: 330px"
+      ><el-row
+        type="flex"
+        justify="space-between"
+        align="middle"
+        style="margin: 10px 0"
+        ><el-col :span="10"
+          ><el-button type="primary" @click="exportLocalStorage"
+            >备份</el-button
+          ></el-col
+        ><el-col :span="14"
+          ><input
+            type="file"
+            ref="fileInput"
+            accept=".json,application/json"
+            style="margin-left: 10px" /></el-col></el-row
+      ><el-row type="flex" justify="space-between" style="margin: 30px 0"
+        ><el-col :span="10"
+          ><el-button type="primary" @click="importLocalStorage"
+            >导入</el-button
+          ></el-col
+        ><el-col :span="14">
+          <!-- <el-button type="success" @click="CLEAR_ALL_DATA">恢复默认值</el-button> -->
+        </el-col></el-row
+      ></el-card
+    >
 
     <el-dialog
       title="添加新商品"
@@ -206,6 +231,8 @@ import {
   calculateId,
   calculateExpireDate,
   validateForm,
+  exportLocalStorage,
+  importLocalStorage,
 } from "@/utils/helpers";
 
 export default {
@@ -291,6 +318,25 @@ export default {
       "UPDATE_SHELF_PRODUCT_BATCHES",
     ]),
     ...mapActions(["updateProduct"]),
+    exportLocalStorage,
+    importLocalStorage() {
+      const fileInput = this.$refs.fileInput;
+      if (!fileInput.files.length) {
+        this.$message.warning("请先选择要导入的文件");
+        return;
+      }
+
+      // 调用工具函数，传入文件对象和导入模式
+      importLocalStorage(fileInput.files[0], this.importMode)
+        .then(() => {
+          this.LOAD_ALL_FROM_STORAGE();
+          console.log(this.importMode);
+          this.$message.success("导入成功");
+        })
+        .catch((error) => {
+          this.$message.error("导入失败：" + error.message);
+        });
+    },
     getProductsTitle(product) {
       return `${product.name}`;
     },

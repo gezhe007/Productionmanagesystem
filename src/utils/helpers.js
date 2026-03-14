@@ -37,7 +37,7 @@ export function calculateExpireDate(produceDate, period, unit) {
     case '月':
       // 方案一：使用 JS 自动溢出（如 1月31日+1月 => 3月2日）
       expireDateObj.setMonth(month - 1 + period);
-      
+
       // 方案二：业务期望的“对应日期”（如果不存在则取当月最后一天）
       // 下面是一个简单的实现，可根据需要选用
       /*
@@ -58,7 +58,72 @@ export function calculateExpireDate(produceDate, period, unit) {
   const d = String(expireDateObj.getDate()).padStart(2, '0');
   return `${y}-${m}-${d}`;
 }
+export function exportLocalStorage() {
+  // 1. 创建一个对象，用来存放所有 localStorage 的数据
+  const allData = {};
 
+  // 2. 遍历 localStorage，将所有键值对放入 allData 对象
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    // 尝试将值解析为JSON，如果解析失败（比如普通字符串），就保留原值
+    try {
+      allData[key] = JSON.parse(localStorage.getItem(key));
+    } catch {
+      allData[key] = localStorage.getItem(key);
+    }
+  }
+
+  // 3. 将数据对象转换成格式化的 JSON 字符串
+  const dataStr = JSON.stringify(allData, null, 2); // 这里的 null 和 2 是为了让导出的 JSON 文件格式更美观
+
+  // 4. 创建一个 Blob 对象，模拟成一个文件
+  const blob = new Blob([dataStr], { type: 'application/json' });
+
+  // 5. 创建一个临时的下载链接并点击它
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `localStorage-backup-${new Date().toISOString().slice(0, 10)}.json`; // 文件名包含当前日期
+  document.body.appendChild(link);
+  link.click();
+
+  // 6. 清理工作：移除链接并释放内存
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+
+  console.log('✅ localStorage 数据已导出！');
+}
+export function importLocalStorage(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = function (e) {
+      try {
+        const importedData = JSON.parse(e.target.result);
+
+        if (typeof importedData !== 'object' || importedData === null) {
+          throw new Error('文件格式错误：根数据必须是一个对象');
+        }
+
+        localStorage.clear();
+        for (const [key, value] of Object.entries(importedData)) {
+          if (typeof value === 'object') {
+            localStorage.setItem(key, JSON.stringify(value));
+          } else {
+            localStorage.setItem(key, String(value));
+          }
+        }
+
+        resolve();
+      } catch (error) {
+        reject(error);
+      }
+    };
+
+    reader.onerror = () => reject(new Error('读取文件失败'));
+    reader.readAsText(file);
+  });
+}
 /**
  * 计算补货后的库存总量
  * @param {string} shelf 货架名称

@@ -2,7 +2,8 @@
   <!-- 保质期警告区域 -->
   <el-card class="warning-card" shadow="formed">
     <div slot="header" class="clearfix">
-      <span>⚠️ 保质期状态警告</span>
+      <span>⚠️ 保质期状态警告</span
+      >
     </div>
     <!-- 临期阈值设置 -->
     <el-card class="threshold-card" shadow="formed">
@@ -56,8 +57,8 @@
         :class="['warn-item', item.cls]"
         :title="item.text"
       >
-        <i :class="['el-icon', item.icon]"></i> {{ item.name }} | {{ item.status
-        }}<br />{{ item.date }}
+        <i :class="['el-icon', item.icon]"></i> {{ item.name }} |
+        {{ item.status }}<br />{{ item.date }}
       </div>
     </div>
     <div v-else class="no-warning">
@@ -73,7 +74,6 @@
 
 <script>
 import { mapState, mapMutations, mapGetters } from "vuex";
-
 export default {
   name: "Home",
   data() {
@@ -121,8 +121,12 @@ export default {
     },
   },
   methods: {
-    ...mapMutations(["SET_EXPIRE_THRESHOLD", "UPDATE_SHELF_BATCHES"]),
-
+    ...mapMutations([
+      "LOAD_ALL_FROM_STORAGE",
+      "SET_EXPIRE_THRESHOLD",
+      "UPDATE_SHELF_BATCHES",
+    ]),
+    
     renderWarningArea() {
       this.warnItems = this.getWarnBatches.map((item) => ({
         name: `${item.shelfName} → ${item.productName}`,

@@ -23,6 +23,18 @@ const state = {
 
 // ========== 同步变更（仅更新状态 + 调用Storage持久化） ==========
 const mutations = {
+  LOAD_ALL_FROM_STORAGE(state) {
+    // 重新从 localStorage 读取所有数据（利用已有的 Storage.init()）
+    const data = Storage.init();
+
+    // 逐个属性更新 state
+    state.shelves = data.shelves;
+    state.products = data.products;
+    state.shelfProducts = data.shelfProducts;
+    state.shelfProductBatches = data.shelfProductBatches;
+    state.expireThreshold = data.expireThreshold;
+    state.categories = data.categories;
+  },
   // 添加商品到列表
   ADD_PRODUCT(state, data) {
     state.products = [...state.products, data];
@@ -187,7 +199,7 @@ const actions = {
 
     // 5. 提交批次更新
     commit('UPDATE_SHELF_PRODUCT_BATCHES', updatedBatches);
-  }
+  },
 };
 // ========== 计算属性（简化组件数据获取） ==========
 const getters = {
@@ -208,7 +220,7 @@ const getters = {
           period: product.period,
           unit: product.unit
         };
-      }).sort((a,b)=>b.id-a.id);
+      }).sort((a, b) => b.id - a.id);
   },
   getBatchStatus: (state) => (expireDateStr) => {
     if (!expireDateStr) {
