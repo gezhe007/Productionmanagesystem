@@ -244,7 +244,7 @@
           >
             <el-option label="全部" :value="0"></el-option>
             <el-option
-              v-for="category in categories"
+              v-for="category in getCategorySorted()"
               :key="category.id"
               :label="category.name"
               :value="category.id"
@@ -416,7 +416,7 @@ export default {
   data() {
     return {
       // 核心：默认隐藏所有操作按钮
-      showButtons: false,
+      showButtons: true,
       filterCatId: 0,
       id: 0,
       shelf: {},
@@ -538,6 +538,11 @@ export default {
         });
       });
     },
+    getCategorySorted() {
+       return [...this.categories].sort((a, b) =>
+        a.name.localeCompare(b.name)
+      );
+    },
     getUnaddedProductsByShelfId(shelfId) {
       // 1. 边界校验：货架ID无效时返回所有商品
       if (!shelfId || typeof shelfId !== "number") {
@@ -557,12 +562,12 @@ export default {
 
       // 3. 新增：根据分类筛选（filterCatId=0时显示全部未添加商品）
       if (this.filterCatId && this.filterCatId !== 0) {
-        unaddedProducts = unaddedProducts.filter(
-          (product) => product.categoryId === this.filterCatId
-        );
+        unaddedProducts = unaddedProducts
+          .filter((product) => product.categoryId === this.filterCatId)
+          .sort((a, b) => a.name.localeCompare(b.name));
       }
 
-      return unaddedProducts;
+      return unaddedProducts.sort((a, b) => a.name.localeCompare(b.name));
     },
     checkShelfNameExist(name) {
       return this.shelves.some((s) => s.name === name);
